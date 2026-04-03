@@ -1,0 +1,5 @@
+{
+  "name": "Eliza Trading Syndicate",
+  "description": "Multi-agent trading terminal powered by Eliza framework, featuring a team of specialists for equities, metals, and forex.",
+  "requestFramePermissions": []
+}
