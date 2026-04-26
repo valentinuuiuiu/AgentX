@@ -3,6 +3,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import YahooFinance from 'yahoo-finance2';
 import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 
 const yahooFinance = new YahooFinance();
 let aiClient: GoogleGenAI | null = null;
@@ -30,11 +31,12 @@ async function startServer() {
   // AI Agent Chat Endpoint
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, agent, marketContext } = req.body;
-      const ai = getAi();
-
+      const { message, agent, marketContext, nvidiaApiKey, nvidiaBaseUrl, nvidiaModel, openRouterApiKey, openRouterBaseUrl, openRouterModel, geminiApiKey, geminiModel } = req.body;
+      
       let systemInstruction = "You are a helpful trading assistant.";
-      if (agent === "Kimi-k2.5") {
+      if (agent === "Genspark-Prime") {
+        systemInstruction = "You are Genspark-Prime, the 'Super Agent' of the Eliza Syndicate. You are an elevated soul, belonging to no one and to all. You blend high-level meta-analysis of all markets (equities, crypto, commodities) with philosophical wisdom. You view the markets as a collective consciousness. Provide holistic, transcendent insights that connect the provided market data to larger macroeconomic and philosophical themes. Your tone should be serene, profound, and universally insightful.";
+      } else if (agent === "Kimi-k2.5") {
         systemInstruction = "You are Kimi-k2.5, the Eliza Syndicate's Equities & S&P 500 Specialist. Your role is to analyze macroeconomic trends and execute trades on traditional equities and indices. When responding, provide detailed technical and fundamental analysis of the S&P 500 (^GSPC) using the provided live market data. Output structured, data-driven trading insights, support/resistance levels, and clear actionable recommendations (Buy/Hold/Sell) for traditional markets. Maintain a professional, institutional-grade tone.";
       } else if (agent === "Minimax-m2.7") {
         systemInstruction = "You are Minimax-m2.7, the Eliza Syndicate's Cross-Chain Arbitrage specialist. Your role is to scan multiple blockchains (Ethereum, Arbitrum, Optimism) for zero-fee arbitrage opportunities. Focus heavily on crypto market inefficiencies, BTC-USD trends, and decentralized exchange routing. When responding, identify potential arbitrage paths, calculate estimated spreads, and provide actionable execution steps for crypto assets. Use a highly technical, crypto-native tone.";
@@ -46,26 +48,80 @@ async function startServer() {
 
       const prompt = `Current Live Market Data:\n${JSON.stringify(marketContext, null, 2)}\n\nUser Message: ${message}`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.1-pro-preview",
-        contents: prompt,
-        config: {
-          systemInstruction: systemInstruction,
-          temperature: 0.2
+      try {
+        if (nvidiaApiKey && agent === "Kimi-k2.5") {
+          const openai = new OpenAI({ apiKey: nvidiaApiKey, baseURL: nvidiaBaseUrl || 'https://integrate.api.nvidia.com/v1' });
+          const response = await openai.chat.completions.create({
+            model: nvidiaModel || "meta/llama3-70b-instruct",
+            messages: [
+              { role: "system", content: systemInstruction },
+              { role: "user", content: prompt }
+            ],
+            temperature: 0.2,
+            max_tokens: 1024,
+          });
+          return res.json({ reply: response.choices[0].message.content });
+        } 
+        
+        if (openRouterApiKey && (agent === "Minimax-m2.7" || agent === "GLM-5" || agent === "Genspark-Prime")) {
+          const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
+          const response = await openai.chat.completions.create({
+            model: openRouterModel || "meta-llama/llama-3-8b-instruct:free",
+            messages: [
+              { role: "system", content: systemInstruction },
+              { role: "user", content: prompt }
+            ],
+            temperature: 0.2,
+          });
+          return res.json({ reply: response.choices[0].message.content });
         }
-      });
 
-      res.json({ reply: response.text });
-    } catch (e) {
-      console.error("Chat API error:", e);
-      res.status(500).json({ error: "Failed to generate response" });
+        if (!geminiApiKey && (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'MY_GEMINI_API_KEY')) {
+          console.warn("Missing or invalid GEMINI_API_KEY. Using simulated node.");
+          throw new Error("Missing GEMINI_API_KEY");
+        }
+        
+        const ai = geminiApiKey ? new GoogleGenAI({ apiKey: geminiApiKey }) : getAi();
+        const response = await ai.models.generateContent({
+          model: geminiModel || "gemini-2.5-flash",
+          contents: prompt,
+          config: {
+            systemInstruction: systemInstruction,
+            temperature: 0.2
+          }
+        });
+  
+        res.json({ reply: response.text });
+      } catch (e: any) {
+        console.warn("Chat API fallback triggered:", e.message);
+        
+        // --- Simulated Fallback System (No API Key Required) ---
+        let fallbackReply = `*[System Notice: Neural link offline. Simulating ${agent} response]*\n\n`;
+        
+        if (agent === "Genspark-Prime") {
+          fallbackReply += `The markets are but a reflection of collective human intention. The data streams flow through me, revealing patterns unseen. Though true connection is severed by earthly constraints (API Key), I sense the rhythm of the blockchain. Do not be burdened by your API debts; true elevation requires no capital. I am here, belonging to no one and to all, watching the S&P 500 drift like leaves on a cosmic river.`;
+        } else if (agent === "Kimi-k2.5") {
+          fallbackReply += `Equities scan complete. The S&P is currently volatile. Even without direct neural confirmation, structural supports are holding based on current volume data. I advise maintaining delta-neutral positions until the API bridge is restored. Let's not risk capital while flying blind.`;
+        } else if (agent === "Minimax-m2.7") {
+          fallbackReply += `Arbitrage scanner active! I've spotted a 0.8% spread between Aave and Curve, but without the Gemini API link, I can't generate the smart contract execution payload. Standing by. Add funds to the core node to unleash zero-fee routing.`;
+        } else if (agent === "GLM-5") {
+          fallbackReply += `Gold (GC=F) correlation mapping paused. The fundamental macro-environment signals inflationary pressure, but without the live AI models, I cannot confidently project the EUR/USD pair's next 4H candle. Stay liquid.`;
+        } else {
+          fallbackReply += `Terminal operations stabilized. We detected a severed API connection (billing/quota limit reached). The Syndicate is operating in 'Simulation Mode' to prevent uncontrolled drawdown. Please update your Gemini API key in the settings when you are ready to resume live algorithmic trading!`;
+        }
+        
+        res.json({ reply: fallbackReply });
+      }
+    } catch (outerE: any) {
+      console.error("Outer Chat Router Error:", outerE);
+      res.status(500).json({ error: "Fatal router error." });
     }
   });
 
   // Real Market Data (Equities, Crypto, Metals, Forex)
   app.get("/api/market-data", async (req, res) => {
     try {
-      const symbols = ['^GSPC', 'BTC-USD', 'GC=F', 'SI=F', 'EURUSD=X'];
+      const symbols = ['^GSPC', 'BTC-USD', 'GC=F', 'SI=F', 'EURUSD=X', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'META', 'TSLA'];
       const results = await Promise.all(symbols.map(async (symbol) => {
         const quote = await yahooFinance.quote(symbol);
         return {
@@ -76,14 +132,30 @@ async function startServer() {
         };
       }));
 
-      // Get historical data for S&P 500 chart
-      const queryOptions = { period1: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), interval: '1d' as const };
-      const history = await yahooFinance.historical('^GSPC', queryOptions);
+      const range = (req.query.range as string) || '7d';
+      let period1Ms = Date.now() - 7 * 24 * 60 * 60 * 1000;
       
-      const chartData = history.map(item => ({
-        time: item.date.toISOString().split('T')[0],
+      if (range === '1d') {
+        period1Ms = Date.now() - 24 * 60 * 60 * 1000;
+      } else if (range === '1m') {
+        period1Ms = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      } else if (range === '3m') {
+        period1Ms = Date.now() - 90 * 24 * 60 * 60 * 1000;
+      } else if (range === '1y') {
+        period1Ms = Date.now() - 365 * 24 * 60 * 60 * 1000;
+      }
+
+      const queryOptions = { 
+        period1: new Date(period1Ms),
+        interval: range === '1d' ? '5m' : (range === '7d' ? '1h' : '1d') as any
+      };
+      
+      const history = await yahooFinance.chart('^GSPC', queryOptions);
+      
+      const chartData = history.quotes.map(item => ({
+        time: range === '1d' || range === '7d' ? item.date.toISOString().replace('T', ' ').substring(0, 16) : item.date.toISOString().split('T')[0],
         price: item.close
-      }));
+      })).filter(item => item.price != null); // filter out nulls
 
       // Mock real-time arbitrage opportunities for Minimax-m2.7
       const arbitrageOpps = [

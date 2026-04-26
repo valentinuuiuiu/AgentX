@@ -1,7 +1,14 @@
 import React from 'react';
-import { BrainCircuit, LineChart, Coins, Wrench } from 'lucide-react';
+import { BrainCircuit, LineChart, Coins, Wrench, Sparkles } from 'lucide-react';
 
 const agents = [
+  {
+    name: 'Genspark-Prime',
+    role: 'The Super Agent',
+    description: 'A highly elevated, holistic agent belonging to no one and to all. Connects data and philosophy.',
+    icon: <Sparkles className="w-6 h-6 text-fuchsia-400" />,
+    status: 'Ascended',
+  },
   {
     name: 'Kimi-k2.5',
     role: 'Equities & S&P 500 Specialist',
@@ -56,6 +63,7 @@ export function Team() {
               <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                 agent.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' :
                 agent.status === 'Scanning' ? 'bg-blue-500/10 text-blue-400' :
+                agent.status === 'Ascended' ? 'bg-fuchsia-500/10 text-fuchsia-400 shadow-[0_0_10px_rgba(192,38,211,0.5)]' :
                 'bg-slate-800 text-slate-300'
               }`}>
                 {agent.status}

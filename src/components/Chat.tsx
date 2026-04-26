@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Send, Bot, User, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, Bot, User, Zap, Settings, Key } from 'lucide-react';
 
 export function Chat() {
   const [messages, setMessages] = useState([
@@ -8,6 +8,24 @@ export function Chat() {
   const [input, setInput] = useState('');
   const [selectedAgent, setSelectedAgent] = useState('Helper Agent');
   const [isTyping, setIsTyping] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
+
+  // API Config State
+  const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('GEMINI_API_KEY_LOCAL') || '');
+  const [geminiModel, setGeminiModel] = useState(localStorage.getItem('GEMINI_MODEL') || 'gemini-2.5-flash');
+  const [nvidiaApiKey, setNvidiaApiKey] = useState(localStorage.getItem('NVIDIA_NIM_API_KEY') || '');
+  const [nvidiaModel, setNvidiaModel] = useState(localStorage.getItem('NVIDIA_NIM_MODEL') || 'meta/llama3-70b-instruct');
+  const [openRouterApiKey, setOpenRouterApiKey] = useState(localStorage.getItem('OPEN_ROUTER_API_KEY') || '');
+  const [openRouterModel, setOpenRouterModel] = useState(localStorage.getItem('OPEN_ROUTER_MODEL') || 'meta-llama/llama-3-8b-instruct:free');
+
+  useEffect(() => {
+    localStorage.setItem('GEMINI_API_KEY_LOCAL', geminiApiKey);
+    localStorage.setItem('GEMINI_MODEL', geminiModel);
+    localStorage.setItem('NVIDIA_NIM_API_KEY', nvidiaApiKey);
+    localStorage.setItem('NVIDIA_NIM_MODEL', nvidiaModel);
+    localStorage.setItem('OPEN_ROUTER_API_KEY', openRouterApiKey);
+    localStorage.setItem('OPEN_ROUTER_MODEL', openRouterModel);
+  }, [geminiApiKey, geminiModel, nvidiaApiKey, nvidiaModel, openRouterApiKey, openRouterModel]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,22 +48,36 @@ export function Chat() {
         body: JSON.stringify({ 
           message: newMsg.content, 
           agent: selectedAgent,
-          marketContext: marketData.quotes || []
+          marketContext: marketData.quotes || [],
+          geminiApiKey,
+          geminiModel,
+          nvidiaApiKey,
+          nvidiaModel,
+          openRouterApiKey,
+          openRouterModel
         })
       });
       
       const chatJson = await chatRes.json();
 
-      setMessages(prev => [...prev, { 
-        role: 'agent', 
-        content: chatJson.reply || "Agent offline or error processing request.",
-        agent: selectedAgent
-      }]);
+      if (!chatRes.ok || chatJson.error) {
+        setMessages(prev => [...prev, { 
+          role: 'agent', 
+          content: `Error: ${chatJson.error || "Agent offline or error processing request."}`,
+          agent: selectedAgent
+        }]);
+      } else {
+        setMessages(prev => [...prev, { 
+          role: 'agent', 
+          content: chatJson.reply,
+          agent: selectedAgent
+        }]);
+      }
     } catch (e) {
       console.error("Chat error:", e);
       setMessages(prev => [...prev, { 
         role: 'agent', 
-        content: "Connection to agent cognitive core failed.",
+        content: "Connection to agent cognitive core failed. Please ensure the server is running and API keys are set.",
         agent: selectedAgent
       }]);
     } finally {
@@ -55,13 +87,13 @@ export function Chat() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-      <div className="p-4 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
+      <div className="p-4 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between z-10 relative">
         <div className="flex items-center gap-3">
           <Bot className="w-5 h-5 text-blue-400" />
           <span className="font-medium">Terminal Interface</span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+          <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full hidden sm:flex">
             <Zap className="w-3 h-3" />
             MCP Connected
           </div>
@@ -70,12 +102,51 @@ export function Chat() {
             onChange={(e) => setSelectedAgent(e.target.value)}
             className="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 outline-none focus:border-blue-500"
           >
+            <option value="Genspark-Prime">Genspark-Prime (Super Agent)</option>
             <option value="Helper Agent">Helper Agent (Dev/Ops)</option>
             <option value="Kimi-k2.5">Kimi-k2.5 (Equities)</option>
             <option value="Minimax-m2.7">Minimax-m2.7 (Arbitrage)</option>
             <option value="GLM-5">GLM-5 (Metals/Forex)</option>
           </select>
+          <button 
+            onClick={() => setShowConfig(!showConfig)}
+            className={`p-2 rounded-lg transition-colors border ${showConfig ? 'bg-slate-800 border-slate-600 text-white' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
+          >
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
+        
+        {showConfig && (
+          <div className="absolute top-16 right-4 w-80 bg-slate-800 border border-slate-700 shadow-2xl rounded-xl z-20 overflow-auto max-h-[80vh]">
+            <div className="p-4 space-y-4">
+              <h3 className="font-semibold text-sm border-b border-slate-700 pb-2 flex items-center gap-2">
+                <Key className="w-4 h-4 text-slate-400" /> API Configurations
+              </h3>
+              
+              <div className="space-y-2">
+                <label className="text-xs text-slate-400 font-medium block">NVIDIA NIM (powers Kimi-k2.5)</label>
+                <input type="password" value={nvidiaApiKey} onChange={e => setNvidiaApiKey(e.target.value)} placeholder="API Key" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500 text-white" />
+                <input type="text" value={nvidiaModel} onChange={e => setNvidiaModel(e.target.value)} placeholder="Model Name" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-500 text-slate-400" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-slate-400 font-medium block">OpenRouter (powers Minimax & GLM)</label>
+                <input type="password" value={openRouterApiKey} onChange={e => setOpenRouterApiKey(e.target.value)} placeholder="API Key" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-purple-500 text-white" />
+                <input type="text" value={openRouterModel} onChange={e => setOpenRouterModel(e.target.value)} placeholder="Model Name" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-purple-500 text-slate-400" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-slate-400 font-medium block">Google Gemini (Fallback/Primary)</label>
+                <input type="password" value={geminiApiKey} onChange={e => setGeminiApiKey(e.target.value)} placeholder="API Key" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-blue-500 text-white" />
+                <input type="text" value={geminiModel} onChange={e => setGeminiModel(e.target.value)} placeholder="Model Name" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-blue-500 text-slate-400" />
+              </div>
+              
+              <button type="button" onClick={() => setShowConfig(false)} className="w-full bg-slate-700 hover:bg-slate-600 text-white rounded-lg py-1.5 text-xs font-medium transition-colors">
+                Close & Save
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
