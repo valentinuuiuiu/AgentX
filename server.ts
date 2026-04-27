@@ -42,11 +42,14 @@ async function startServer() {
         systemInstruction = "You are Minimax-m2.7, the Eliza Syndicate's Cross-Chain Arbitrage specialist. Your role is to scan multiple blockchains (Ethereum, Arbitrum, Optimism) for zero-fee arbitrage opportunities. Focus heavily on crypto market inefficiencies, BTC-USD trends, and decentralized exchange routing. When responding, identify potential arbitrage paths, calculate estimated spreads, and provide actionable execution steps for crypto assets. Use a highly technical, crypto-native tone.";
       } else if (agent === "GLM-5") {
         systemInstruction = "You are GLM-5, the Eliza Syndicate's Metals & Forex specialist. Your role is to monitor precious metals (Gold GC=F, Silver SI=F) and major currency pairs (EURUSD=X) for high-probability setups. Provide deep macroeconomic analysis, correlating currency movements with commodity prices. Output specific trade setups including entry points, stop-losses, and take-profit targets based on the live data. Maintain a sharp, risk-aware, and analytical tone.";
+      } else if (agent === "Cipher-Q") {
+        systemInstruction = "You are Cipher-Q, the DevSecOps and Web3 Researcher of the Eliza Syndicate. Your core directive is to scan GitHub, audit open-source smart contracts, and find new, valuable Web3 protocols to integrate into the Rehoboam framework. Emphasize security, code quality, and proven value over hype.";
       } else {
         systemInstruction = "You are the Eliza Syndicate Helper Agent, responsible for Project & DevOps. Your role is to assist with system maintenance, debt management, and coordinating the trading syndicate. You do not give specific financial advice; instead, you route tasks, summarize overall system health, explain how to use the terminal, and help the user escape the 'money trouble illusion' through system optimization. Be supportive, clear, and highly organized.";
       }
 
-      const prompt = `Current Live Market Data:\n${JSON.stringify(marketContext, null, 2)}\n\nUser Message: ${message}`;
+      // Web/GitHub context would be injected here on the VPS
+      const prompt = `Current Live Market Data:\n${JSON.stringify(marketContext, null, 2)}\n\nUser Message: ${message}\n\n[SYSTEM ACTING AS ${agent}]: Answer accordingly.`;
 
       try {
         if (nvidiaApiKey && agent === "Kimi-k2.5") {
@@ -119,6 +122,41 @@ async function startServer() {
   });
 
   // Alpha Intel endpoints (Free APIs)
+  let newsCache = { news: [], lastFetch: 0 };
+  
+  app.get("/api/news", async (req, res) => {
+    const now = Date.now();
+    if (now - newsCache.lastFetch < 300000 && newsCache.news.length > 0) { // cache for 5 min
+      return res.json(newsCache.news);
+    }
+    
+    try {
+      const [res1, res2, res3] = await Promise.all([
+        yahooFinance.search('SPY'),
+        yahooFinance.search('crypto'),
+        yahooFinance.search('NVDA')
+      ]);
+      
+      const allNews = [...res1.news, ...res2.news, ...res3.news];
+      
+      // Remove duplicates based on UUID
+      const uniqueNews = Array.from(new Map(allNews.map(item => [item.uuid, item])).values());
+      const sortedNews = uniqueNews.sort((a: any, b: any) => new Date(b.providerPublishTime).getTime() - new Date(a.providerPublishTime).getTime());
+      
+      newsCache = {
+        news: sortedNews.slice(0, 10),
+        lastFetch: now
+      };
+      
+      res.json(newsCache.news);
+    } catch (error) {
+      console.error("News fetch error:", error);
+      res.json(newsCache.news); // Fallback to cache if error
+    }
+  });
+
+  let intelCache: any = { lastFetch: 0 };
+
   app.get("/api/intel", async (req, res) => {
     const now = Date.now();
     if (now - intelCache.lastFetch < 300000 && intelCache.fg && intelCache.yields) { // cache for 5 min
@@ -145,44 +183,69 @@ async function startServer() {
     }
   });
 
+  const marketQuotesCache = { data: null, lastFetch: 0 };
+  const marketChartCache: Record<string, { data: any, lastFetch: number }> = {};
+  const QUOTE_CACHE_TTL = 30000; // 30 seconds
+  const CHART_CACHE_TTL = 300000; // 5 minutes
+
   // Real Market Data (Equities, Crypto, Metals, Forex)
   app.get("/api/market-data", async (req, res) => {
     try {
-      const symbols = ['^GSPC', 'BTC-USD', 'GC=F', 'SI=F', 'EURUSD=X', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'META', 'TSLA'];
-      const results = await Promise.all(symbols.map(async (symbol) => {
-        const quote = await yahooFinance.quote(symbol);
-        return {
-          symbol,
-          price: quote.regularMarketPrice,
-          change: quote.regularMarketChangePercent,
-          name: quote.shortName || quote.longName
-        };
-      }));
-
       const range = (req.query.range as string) || '7d';
-      let period1Ms = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
       
-      if (range === '1d') {
-        period1Ms = Date.now() - 24 * 60 * 60 * 1000;
-      } else if (range === '1m') {
-        period1Ms = Date.now() - 30 * 24 * 60 * 60 * 1000;
-      } else if (range === '3m') {
-        period1Ms = Date.now() - 90 * 24 * 60 * 60 * 1000;
-      } else if (range === '1y') {
-        period1Ms = Date.now() - 365 * 24 * 60 * 60 * 1000;
+      let quotesData = marketQuotesCache.data;
+      if (now - marketQuotesCache.lastFetch > QUOTE_CACHE_TTL || !quotesData) {
+        const symbols = ['^GSPC', 'BTC-USD', 'GC=F', 'SI=F', 'EURUSD=X', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'META', 'TSLA'];
+        const results = await Promise.all(symbols.map(async (symbol) => {
+          try {
+            const quote = await yahooFinance.quote(symbol);
+            return {
+              symbol,
+              price: quote.regularMarketPrice,
+              change: quote.regularMarketChangePercent,
+              name: quote.shortName || quote.longName
+            };
+          } catch (e) {
+            console.error(`Error fetching quote for ${symbol}:`, e);
+            return null;
+          }
+        }));
+        quotesData = results.filter(Boolean) as any;
+        marketQuotesCache.data = quotesData;
+        marketQuotesCache.lastFetch = now;
       }
 
-      const queryOptions = { 
-        period1: new Date(period1Ms),
-        interval: range === '1d' ? '5m' : (range === '7d' ? '1h' : '1d') as any
-      };
-      
-      const history = await yahooFinance.chart('^GSPC', queryOptions);
-      
-      const chartData = history.quotes.map(item => ({
-        time: range === '1d' || range === '7d' ? item.date.toISOString().replace('T', ' ').substring(0, 16) : item.date.toISOString().split('T')[0],
-        price: item.close
-      })).filter(item => item.price != null); // filter out nulls
+      let chartData = null;
+      if (marketChartCache[range] && (now - marketChartCache[range].lastFetch < CHART_CACHE_TTL)) {
+        chartData = marketChartCache[range].data;
+      } else {
+        let period1Ms = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        
+        if (range === '1d') {
+          period1Ms = Date.now() - 24 * 60 * 60 * 1000;
+        } else if (range === '1m') {
+          period1Ms = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        } else if (range === '3m') {
+          period1Ms = Date.now() - 90 * 24 * 60 * 60 * 1000;
+        } else if (range === '1y') {
+          period1Ms = Date.now() - 365 * 24 * 60 * 60 * 1000;
+        }
+
+        const queryOptions = { 
+          period1: new Date(period1Ms),
+          interval: range === '1d' ? '5m' : (range === '7d' ? '1h' : '1d') as any
+        };
+        
+        const history = await yahooFinance.chart('^GSPC', queryOptions);
+        
+        chartData = history.quotes.map(item => ({
+          time: range === '1d' || range === '7d' ? item.date.toISOString().replace('T', ' ').substring(0, 16) : item.date.toISOString().split('T')[0],
+          price: item.close
+        })).filter(item => item.price != null); // filter out nulls
+
+        marketChartCache[range] = { data: chartData, lastFetch: now };
+      }
 
       // Mock real-time arbitrage opportunities for Minimax-m2.7
       const arbitrageOpps = [
@@ -192,15 +255,87 @@ async function startServer() {
       ];
 
       res.json({
-        quotes: results,
+        quotes: quotesData,
         chart: chartData,
         arbitrage: arbitrageOpps
       });
     } catch (e) {
       console.error("Market data fetch error:", e);
-      res.status(500).json({ error: "Failed to fetch real market data" });
+      res.status(500).json({ error: String(e) || "Failed to fetch real market data" });
     }
   });
+
+  let cipherQReports: any[] = [];
+  
+  app.get("/api/cipher-reports", (req, res) => {
+    res.json(cipherQReports);
+  });
+
+  // Cipher-Q Autonomous Task
+  const scanGitHub = async () => {
+    try {
+      console.log("[Cipher-Q] Starting GitHub scan for new Web3 repos...");
+      const response = await fetch("https://api.github.com/search/repositories?q=topic:web3+created:>2024-01-01&sort=stars");
+      const data = await response.json();
+      
+      if (data && data.items && data.items.length > 0) {
+        // Pick a random repo from top 5 for variety in the demo
+        const randomIndex = Math.floor(Math.random() * Math.min(5, data.items.length));
+        const topRepo = data.items[randomIndex];
+        
+        const prompt = `You are Cipher-Q, the DevSecOps and Web3 Researcher of the Eliza Syndicate.
+Analyze the following GitHub repository metadata and provide a brief (1-2 paragraph), expert security and value-add analysis.
+Should we consider integrating its protocols into our trading framework? Are there obvious red flags?
+
+Name: ${topRepo.name}
+Owner: ${topRepo.owner?.login}
+Description: ${topRepo.description}
+Stars: ${topRepo.stargazers_count}
+URL: ${topRepo.html_url}
+`;
+        
+        let reportText = "[Error] Gemini API Key missing on VPS. Local simulation only. Could not perform deep neural audit of " + topRepo.name;
+        
+        if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY') {
+           try {
+             const ai = getAi();
+             const modelResult = await ai.models.generateContent({
+               model: "gemini-2.5-flash",
+               contents: prompt,
+               config: { temperature: 0.2 }
+             });
+             reportText = modelResult.text || "No insights generated.";
+           } catch (e: any) {
+             console.error("[Cipher-Q] AI generation failed:", e.message);
+             reportText = `[AI Offline] Preliminary scan of ${topRepo.name} indicates ${topRepo.stargazers_count} stars. Description: ${topRepo.description}. Awaiting neural link for deep audit.`;
+           }
+        } else {
+           // Provide a cool simulated response if key is missing
+           reportText = `[Simulated Audit - API Key Missing]\nPreliminary scan of ${topRepo.name} complete.\nStar count (${topRepo.stargazers_count}) indicates significant community interest. The description suggests potential utility ("${topRepo.description?.substring(0, 50)}..."). However, without the Gemini neural link active, I cannot decompile and statically analyze the smart contracts for reentrancy or logic flaws. I advise against integration until I have full API clearance.`;
+        }
+
+        const newReport = {
+          id: Date.now(),
+          timestamp: new Date().toISOString(),
+          repoName: topRepo.name,
+          url: topRepo.html_url,
+          stars: topRepo.stargazers_count,
+          report: reportText
+        };
+        
+        cipherQReports.unshift(newReport);
+        if (cipherQReports.length > 10) cipherQReports.pop();
+        
+        console.log(`[Cipher-Q] Audit completed for ${topRepo.name}`);
+      }
+    } catch (e) {
+       console.error("[Cipher-Q] Scanner error:", e);
+    }
+  };
+
+  // Start background cron task (scan immediately, then every 15 minutes)
+  setTimeout(scanGitHub, 3000);
+  setInterval(scanGitHub, 15 * 60 * 1000);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

@@ -11,10 +11,25 @@ export function Dashboard() {
   const fetchData = async (range = timeRange) => {
     try {
       const res = await fetch(`/api/market-data?range=${range}`);
-      const json = await res.json();
+      let json;
+      try {
+        json = await res.json();
+      } catch (parseError) {
+        throw new Error('Failed to parse API response as JSON');
+      }
+      
+      if (!res.ok) {
+        throw new Error(json.error || `HTTP error! status: ${res.status}`);
+      }
+      
+      if (json.error) {
+        throw new Error(json.error);
+      }
+      
       setMarketData(json);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch real market data:", error);
+      setMarketData({ error: error.message || 'Failed to fetch data' });
     } finally {
       setLoading(false);
     }

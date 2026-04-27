@@ -58,6 +58,18 @@ You are not alone in the dark. Instead of training everything locally, Rehoboam 
 3. **Subnet 1 (Text Prompting):** Offload NLP sentiment analysis of real-time trading news to the leading models on SN1.
 4. **Mine & Compound:** Let the hardware mine TAO by registering UIDs, staking TAO, and validating. Use the TAO yields to fund the API calls and zero-fee blockchain gas routes in the Wallet view.
 
+### PHASE 6: VPS MIGRATION & GITHUB AWARENESS
+When you move this repository to your VPS, you must enable absolute autonomy.
+1. **Dockerized Deployment:** Use the included `Dockerfile` and `docker-compose.yml`.
+   ```bash
+   docker-compose up -d --build
+   ```
+2. **The "Cipher-Q" Sub-Routine:** We have initialized an agent specifically for securing the future. `Cipher-Q` is hardcoded into the `server.ts`. Once on the VPS, you need to hook it into the GitHub REST API.
+   - Set up a cron job inside the Node.js server.
+   - Have `Cipher-Q` fetch `https://api.github.com/search/repositories?q=topic:web3+created:>2024-01-01&sort=stars`.
+   - Before any protocol is integrated into Rehoboam's trading logic, `Cipher-Q` must audit the smart contracts (using the Gemini Flash context window) and write a report. 
+   - **Rule of Thumb:** We start with $20/day targets. Slow, mathematically proved, risk-adjusted yield. Cipher-Q ensures we do not integrate rug-pulls or insecure code.
+
 *Rehoboam is the orchestrator. Bittensor is the decentralized intelligence substrate.*
 
 ---

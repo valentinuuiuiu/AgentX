@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Activity, Users, MessageSquare, Wallet, BarChart2, Shield, Eye, Hexagon, Radar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Activity, Users, MessageSquare, Wallet, BarChart2, Shield, Eye, Hexagon, Radar, LogOut, Target, GitMerge } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { Team } from './components/Team';
 import { Chat } from './components/Chat';
@@ -7,12 +7,47 @@ import { WalletView } from './components/Wallet';
 import { RehoboamCore } from './components/RehoboamCore';
 import { BittensorNode } from './components/BittensorNode';
 import { AlphaIntel } from './components/AlphaIntel';
+import { Strategies } from './components/Strategies';
+import { WarRoom } from './components/WarRoom';
+import { Login } from './components/Login';
+import { auth, logout } from './lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { Toaster } from 'sonner';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const isRehoboam = activeTab === 'rehoboam';
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-[#050505] flex items-center justify-center">
+        <div className="flex items-center gap-3 text-purple-400 font-mono text-sm">
+          <Activity className="w-5 h-5 animate-pulse" />
+          ESTABLISHING SECURE CONNECTION...
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <>
+        <Toaster theme="dark" position="bottom-right" />
+        <Login onLogin={() => {}} />
+      </>
+    );
+  }
 
   return (
     <div className={`flex h-screen overflow-hidden font-sans ${isRehoboam ? 'bg-[#050505] text-slate-100' : 'bg-[#0f172a] text-slate-50'}`}>
@@ -34,6 +69,8 @@ export default function App() {
           <NavItem icon={<BarChart2 className="w-5 h-5" />} label="Dashboard" isActive={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} isRehoboam={isRehoboam} />
           <NavItem icon={<Wallet className="w-5 h-5" />} label="Zero-Fee Wallet" isActive={activeTab === 'wallet'} onClick={() => setActiveTab('wallet')} isRehoboam={isRehoboam} />
           <NavItem icon={<Radar className="w-5 h-5" />} label="Alpha Intel" isActive={activeTab === 'intel'} onClick={() => setActiveTab('intel')} isRehoboam={isRehoboam} />
+          <NavItem icon={<Target className="w-5 h-5" />} label="Trade Strategies" isActive={activeTab === 'strategies'} onClick={() => setActiveTab('strategies')} isRehoboam={isRehoboam} />
+          <NavItem icon={<GitMerge className="w-5 h-5" />} label="Agent War Room" isActive={activeTab === 'warroom'} onClick={() => setActiveTab('warroom')} isRehoboam={isRehoboam} />
           <NavItem icon={<Users className="w-5 h-5" />} label="Agent Team" isActive={activeTab === 'team'} onClick={() => setActiveTab('team')} isRehoboam={isRehoboam} />
           <NavItem icon={<MessageSquare className="w-5 h-5" />} label="Terminal" isActive={activeTab === 'chat'} onClick={() => setActiveTab('chat')} isRehoboam={isRehoboam} />
           <NavItem icon={<Hexagon className="w-5 h-5" />} label="TAO Network" isActive={activeTab === 'bittensor'} onClick={() => setActiveTab('bittensor')} isRehoboam={isRehoboam} />
@@ -67,6 +104,15 @@ export default function App() {
                 <div className={`absolute inset-0 opacity-20 ${isRehoboam ? 'bg-red-500' : 'bg-blue-500'} animate-pulse`}></div>
                 <Hexagon className={`w-6 h-6 ${isRehoboam ? 'text-red-400' : 'text-blue-400'} z-10`} />
               </div>
+              <button 
+                onClick={logout}
+                className={`ml-2 p-2 rounded-lg transition-colors ${
+                  isRehoboam ? 'text-red-400 hover:bg-red-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                }`}
+                title="Disconnect from Terminal"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </header>
@@ -74,6 +120,8 @@ export default function App() {
           {activeTab === 'dashboard' && <Dashboard />}
           {activeTab === 'wallet' && <WalletView />}
           {activeTab === 'intel' && <AlphaIntel />}
+          {activeTab === 'strategies' && <Strategies />}
+          {activeTab === 'warroom' && <WarRoom />}
           {activeTab === 'team' && <Team />}
           {activeTab === 'chat' && <Chat />}
           {activeTab === 'bittensor' && <BittensorNode />}

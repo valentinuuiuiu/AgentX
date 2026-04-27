@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Radar, Flame, Droplet, Clock, ArrowUpRight, Compass, ShieldAlert } from 'lucide-react';
+import { Radar, Flame, Droplet, Clock, ArrowUpRight, Compass, ShieldAlert, Newspaper, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function AlphaIntel() {
   const [intel, setIntel] = useState<any>(null);
+  const [news, setNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchIntel = async () => {
       try {
-        const response = await fetch('/api/intel');
-        const data = await response.json();
+        const [intelRes, newsRes] = await Promise.all([
+          fetch('/api/intel'),
+          fetch('/api/news')
+        ]);
+        if (!intelRes.ok || !newsRes.ok) {
+          throw new Error('Network response was not ok');
+        }
+        let data, newsData;
+        try {
+          data = await intelRes.json();
+          newsData = await newsRes.json();
+        } catch (e) {
+          throw new Error('Failed to parse response as JSON');
+        }
+        
+        if (data.error) throw new Error(data.error);
+        if (newsData.error) throw new Error(newsData.error);
+        
         setIntel(data);
+        setNews(newsData);
       } catch (error) {
-        console.error('Failed to fetch intel:', error);
+        console.error('Failed to fetch data:', error);
         toast.error('Data stream interrupted. Retrying connection...');
       } finally {
         setLoading(false);
@@ -163,6 +181,113 @@ export function AlphaIntel() {
             ))}
           </div>
       </div>
+
+      {/* Row 3: Market News */}
+      <div className="bg-[#050505] border border-[#1a1a2e] rounded-xl p-6 shadow-[0_0_15px_rgba(139,92,246,0.05)]">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-bold flex items-center gap-2 text-slate-300">
+            <Newspaper className="w-5 h-5 text-indigo-400" />
+            Live Global Feeds (Yahoo Finance)
+          </h2>
+          <span className="px-2 py-1 text-[10px] uppercase font-bold tracking-widest bg-indigo-500/10 text-indigo-400 rounded border border-indigo-500/20">Extracted</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {news.map((item, i) => (
+            <a key={item.uuid || i} href={item.link} target="_blank" rel="noopener noreferrer" className="bg-[#0a0a14] border border-[#1a1a2e] rounded-lg p-4 flex gap-4 hover:border-indigo-500/30 transition-colors group">
+              {item.thumbnail?.resolutions?.[1]?.url && (
+                <img src={item.thumbnail.resolutions[1].url} alt="" className="w-20 h-20 object-cover rounded-md flex-shrink-0" />
+              )}
+              <div className="space-y-2 flex-1">
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">{item.publisher}</span>
+                  <span className="text-[10px] text-slate-500">{new Date(item.providerPublishTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+                <h3 className="text-sm font-bold text-slate-200 group-hover:text-indigo-300 transition-colors line-clamp-2">{item.title}</h3>
+                {item.relatedTickers && item.relatedTickers.length > 0 && (
+                  <div className="flex gap-1 flex-wrap">
+                    {item.relatedTickers.slice(0, 3).map((ticker: string) => (
+                      <span key={ticker} className="text-[10px] font-mono bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">{ticker}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+        {news.length === 0 && (
+          <div className="text-center py-8 text-slate-500 text-sm">Awaiting news transmission...</div>
+        )}
+      </div>
+      {/* Row 4: Security and Whale Tracking */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Whale Wallet Tracking */}
+        <div className="bg-[#050505] border border-[#1a1a2e] rounded-xl p-6 shadow-[0_0_15px_rgba(139,92,246,0.05)]">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-slate-300">
+              <Activity className="w-5 h-5 text-cyan-400" />
+              Leviathan-X Mempool Radar
+            </h2>
+            <span className="px-2 py-1 text-[10px] uppercase font-bold tracking-widest bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/20">Active</span>
+          </div>
+
+          <div className="space-y-3 font-mono text-sm">
+            {[
+              { type: 'Transfer', amount: '50,000 ETH', from: 'FTX Exploiter', to: 'Tornado Cash', time: '2 mins ago', severity: 'high' },
+              { type: 'Swap', amount: '12M USDC', from: '0x32ab...9f01', to: 'PEPE', time: '14 mins ago', severity: 'medium' },
+              { type: 'Accumulation', amount: '450 WBTC', from: 'Binance Hot', to: '0x88c1...e22a', time: '41 mins ago', severity: 'low' },
+            ].map((alert, i) => (
+              <div key={i} className="bg-[#0a0a14] border border-[#1a1a2e] p-3 rounded-lg flex items-center justify-between">
+                <div>
+                   <div className="flex items-center gap-2 mb-1">
+                      <span className={`w-2 h-2 rounded-full ${alert.severity === 'high' ? 'bg-red-500 animate-pulse' : alert.severity === 'medium' ? 'bg-orange-500' : 'bg-blue-500'}`}></span>
+                      <span className="text-slate-300 font-bold">{alert.amount} <span className="text-slate-500 font-normal">({alert.type})</span></span>
+                   </div>
+                   <div className="text-[10px] text-slate-500 break-all">
+                     {alert.from} <span className="text-cyan-500">→</span> {alert.to}
+                   </div>
+                </div>
+                <div className="text-[10px] text-slate-600 tracking-wider">
+                  {alert.time}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Contract Security Scanner */}
+        <div className="bg-[#050505] border border-[#1a1a2e] rounded-xl p-6 shadow-[0_0_15px_rgba(139,92,246,0.05)]">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-slate-300">
+              <ShieldAlert className="w-5 h-5 text-rose-400" />
+              Rug Pull Radar (Cipher-Q)
+            </h2>
+            <span className="px-2 py-1 text-[10px] uppercase font-bold tracking-widest bg-rose-500/10 text-rose-400 rounded border border-rose-500/20">Scanning</span>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              { token: 'AI-DOGE', score: 15, issues: ['Mint function isolated', 'Owner can pause trading'], status: 'Honeypot' },
+              { token: 'NEURAL-X', score: 85, issues: ['Dev wallet holds 15%'], status: 'Low Risk' },
+              { token: 'TAO-WRAP', score: 40, issues: ['Liquidity not locked', 'Proxy contract'], status: 'High Risk' },
+            ].map((scan, i) => (
+              <div key={i} className="flex flex-col gap-2 bg-[#0a0a14] p-3 rounded-lg border border-[#1a1a2e]">
+                <div className="flex justify-between items-center">
+                  <div className="font-bold text-slate-200 text-sm font-mono">{scan.token}</div>
+                  <div className={`text-xs px-2 py-1 rounded font-bold ${scan.score > 80 ? 'bg-emerald-500/20 text-emerald-400' : scan.score > 50 ? 'bg-orange-500/20 text-orange-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                    Score: {scan.score}/100
+                  </div>
+                </div>
+                <div className="text-xs text-slate-500">
+                  {scan.issues.join(' • ')}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

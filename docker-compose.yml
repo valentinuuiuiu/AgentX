@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  eliza-syndicate:
+    build: .
+    container_name: eliza-syndicate-core
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # - GEMINI_API_KEY=your_key_here
+      # - NVIDIA_NIM_API_KEY=your_key_here
+      # - OPEN_ROUTER_API_KEY=your_key_here
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data

@@ -107,6 +107,7 @@ export function Chat() {
             <option value="Kimi-k2.5">Kimi-k2.5 (Equities)</option>
             <option value="Minimax-m2.7">Minimax-m2.7 (Arbitrage)</option>
             <option value="GLM-5">GLM-5 (Metals/Forex)</option>
+            <option value="Cipher-Q">Cipher-Q (Web3 GitHub Scanner)</option>
           </select>
           <button 
             onClick={() => setShowConfig(!showConfig)}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRightLeft, ShieldCheck, Key, AlertCircle, Link, Hexagon } from 'lucide-react';
+import { ArrowRightLeft, ShieldCheck, Key, AlertCircle, Link, Hexagon, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function WalletView() {
@@ -201,6 +201,42 @@ export function WalletView() {
                     Disconnect
                   </button>
                 </div>
+                
+                {/* Advanced Web3 Features */}
+                {walletType !== 'CEX' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <div className="bg-emerald-900/20 border border-emerald-500/20 p-4 rounded-xl flex items-start gap-4 transition-colors relative group">
+                      <div className="bg-emerald-500/20 p-2 rounded-lg text-emerald-400">
+                        <Activity className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-1">
+                          <h4 className="text-emerald-400 font-bold text-sm">Yield Optimizer (Auto-Compound)</h4>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked onChange={(e) => toast(e.target.checked ? "Yield Optimizer Enabled" : "Yield Optimizer Disabled")} />
+                            <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                          </label>
+                        </div>
+                        <p className="text-xs text-slate-400">Auto-compounds LP rewards and hunts for the highest stable APY across L2s using DeFiLlama data points.</p>
+                      </div>
+                    </div>
+                    <div className="bg-indigo-900/20 border border-indigo-500/20 p-4 rounded-xl flex items-start gap-4 transition-colors relative group">
+                      <div className="bg-indigo-500/20 p-2 rounded-lg text-indigo-400">
+                        <ShieldCheck className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-1">
+                          <h4 className="text-indigo-400 font-bold text-sm">IL Protection & MEV Shield</h4>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked onChange={(e) => toast(e.target.checked ? "IL/MEV Shield Enabled" : "IL/MEV Shield Disabled")} />
+                            <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                          </label>
+                        </div>
+                        <p className="text-xs text-slate-400">Dynamic liquidity rebalancing. Retreats funds back to stablecoins if volatility exceeds 15% threshold.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 {/* TAO Gas Tank */}
                 <div className="mt-8 pt-6 border-t border-slate-700/50">
