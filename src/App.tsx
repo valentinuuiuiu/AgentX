@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Activity, Users, MessageSquare, Wallet, BarChart2, Shield, Eye, Hexagon } from 'lucide-react';
+import { Activity, Users, MessageSquare, Wallet, BarChart2, Shield, Eye, Hexagon, Radar } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { Team } from './components/Team';
 import { Chat } from './components/Chat';
 import { WalletView } from './components/Wallet';
 import { RehoboamCore } from './components/RehoboamCore';
 import { BittensorNode } from './components/BittensorNode';
+import { AlphaIntel } from './components/AlphaIntel';
 import { Toaster } from 'sonner';
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
         <nav className="flex-1 px-4 space-y-2 mt-4">
           <NavItem icon={<BarChart2 className="w-5 h-5" />} label="Dashboard" isActive={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} isRehoboam={isRehoboam} />
           <NavItem icon={<Wallet className="w-5 h-5" />} label="Zero-Fee Wallet" isActive={activeTab === 'wallet'} onClick={() => setActiveTab('wallet')} isRehoboam={isRehoboam} />
+          <NavItem icon={<Radar className="w-5 h-5" />} label="Alpha Intel" isActive={activeTab === 'intel'} onClick={() => setActiveTab('intel')} isRehoboam={isRehoboam} />
           <NavItem icon={<Users className="w-5 h-5" />} label="Agent Team" isActive={activeTab === 'team'} onClick={() => setActiveTab('team')} isRehoboam={isRehoboam} />
           <NavItem icon={<MessageSquare className="w-5 h-5" />} label="Terminal" isActive={activeTab === 'chat'} onClick={() => setActiveTab('chat')} isRehoboam={isRehoboam} />
           <NavItem icon={<Hexagon className="w-5 h-5" />} label="TAO Network" isActive={activeTab === 'bittensor'} onClick={() => setActiveTab('bittensor')} isRehoboam={isRehoboam} />
@@ -71,6 +73,7 @@ export default function App() {
         <div className={`flex-1 overflow-auto p-4 md:p-8 ${isRehoboam ? 'bg-gradient-to-b from-[#050505] to-black' : ''}`}>
           {activeTab === 'dashboard' && <Dashboard />}
           {activeTab === 'wallet' && <WalletView />}
+          {activeTab === 'intel' && <AlphaIntel />}
           {activeTab === 'team' && <Team />}
           {activeTab === 'chat' && <Chat />}
           {activeTab === 'bittensor' && <BittensorNode />}

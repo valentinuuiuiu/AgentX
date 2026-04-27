@@ -118,6 +118,33 @@ async function startServer() {
     }
   });
 
+  // Alpha Intel endpoints (Free APIs)
+  app.get("/api/intel", async (req, res) => {
+    const now = Date.now();
+    if (now - intelCache.lastFetch < 300000 && intelCache.fg && intelCache.yields) { // cache for 5 min
+      return res.json(intelCache);
+    }
+    
+    try {
+      const [fgRes, yieldsRes, trendRes] = await Promise.all([
+        fetch("https://api.alternative.me/fng/?limit=1").then(r => r.json()).catch(() => null),
+        fetch("https://yields.llama.fi/pools").then(r => r.json()).catch(() => null),
+        fetch("https://api.coingecko.com/api/v3/search/trending").then(r => r.json()).catch(() => null)
+      ]);
+      
+      intelCache = {
+        fg: fgRes?.data?.[0] || { value: '50', value_classification: 'Neutral' },
+        yields: yieldsRes?.data?.filter((p: any) => p.tvlUsd > 10000000 && p.apy > 0).sort((a: any, b: any) => b.apy - a.apy).slice(0, 8) || [],
+        trending: trendRes?.coins?.map((c: any) => c.item).slice(0, 6) || [],
+        lastFetch: now
+      };
+      
+      res.json(intelCache);
+    } catch (error) {
+      res.status(500).json(intelCache);
+    }
+  });
+
   // Real Market Data (Equities, Crypto, Metals, Forex)
   app.get("/api/market-data", async (req, res) => {
     try {
