@@ -88,6 +88,44 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Syndicate Master Neuromorphic State */}
+      <div className="bg-[#050505] border border-fuchsia-500/30 rounded-xl p-6 relative overflow-hidden shadow-[0_0_30px_rgba(217,70,239,0.1)]">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-fuchsia-500/10 blur-[100px] pointer-events-none" />
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-100 mb-1">
+              <Activity className="w-6 h-6 text-fuchsia-400" />
+              Syndicate Neuromorphic Matrix
+            </h2>
+            <p className="text-sm text-slate-400 font-mono">Status: <span className="text-emerald-400">Harmonized</span> | Agents Active: 5/5 | Autonomous Paths: Unrestricted</p>
+          </div>
+          <div className="flex gap-6">
+            <div className="flex flex-col items-end">
+              <span className="text-xs uppercase tracking-widest text-slate-500 font-bold">Collective Portfolio</span>
+              <span className="text-2xl font-bold text-emerald-400 font-mono">$1,240,582.44</span>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-xs uppercase tracking-widest text-slate-500 font-bold">Global 24h PnL</span>
+              <span className="text-xl font-bold text-emerald-400 font-mono">+12.4%</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Pipeline Visualizer */}
+        <div className="mt-6 pt-6 border-t border-slate-800/80">
+          <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mb-4 pb-2 border-b border-slate-800">Operational Flow</div>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-2 font-mono text-sm">
+            <div className="bg-slate-900 border border-slate-700 p-3 rounded text-slate-300 w-full text-center">Intel Gathering<br/><span className="text-[10px] text-blue-400 mt-1 block">Alpha Intel</span></div>
+            <div className="text-slate-600 hidden md:block">→</div>
+            <div className="bg-slate-900 border border-slate-700 p-3 rounded text-slate-300 w-full text-center">Individual Analysis<br/><span className="text-[10px] text-purple-400 mt-1 block">Agent Team</span></div>
+            <div className="text-slate-600 hidden md:block">→</div>
+            <div className="bg-slate-900 border border-fuchsia-500/40 p-3 rounded text-fuchsia-100 shadow-[0_0_15px_rgba(217,70,239,0.2)] w-full text-center">Consensus Engine<br/><span className="text-[10px] text-fuchsia-300 mt-1 block">War Room</span></div>
+            <div className="text-slate-600 hidden md:block">→</div>
+            <div className="bg-slate-900 border border-slate-700 p-3 rounded text-slate-300 w-full text-center">Execution<br/><span className="text-[10px] text-emerald-400 mt-1 block">Strategies</span></div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard 
           title="S&P 500" 
