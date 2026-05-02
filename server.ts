@@ -380,8 +380,10 @@ URL: ${topRepo.html_url}
       }
     });
 
-    bot.launch();
-    console.log("[Telegraf] Telegram Bot successfully launched and listening!");
+    bot.launch().catch((err: any) => {
+      console.error("[Telegraf] Bot launch failed:", err.message || err);
+    });
+    console.log("[Telegraf] Telegram Bot initializing...");
     
     // Enable graceful stop
     process.once('SIGINT', () => bot.stop('SIGINT'));
