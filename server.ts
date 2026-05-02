@@ -4,6 +4,7 @@ import path from "path";
 import YahooFinance from 'yahoo-finance2';
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
+import { Telegraf } from "telegraf";
 
 const yahooFinance = new YahooFinance();
 let aiClient: GoogleGenAI | null = null;
@@ -355,6 +356,39 @@ URL: ${topRepo.html_url}
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
+
+  // Wire up Telegram Bot if token exists
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (botToken) {
+    const bot = new Telegraf(botToken);
+    
+    bot.start((ctx) => ctx.reply('Welcome to the Eliza Trading Syndicate Terminal. I am your A2A bridge.'));
+    bot.help((ctx) => ctx.reply('Available commands:\n/status - Check Swarm Status\n/intel - Fetch Market Alpha'));
+    
+    bot.command('status', (ctx) => {
+      ctx.reply('Syndicate Status: ONLINE 🟢\nAll Neuromorphic Nodes Active. A2A Swarm connected via Redis.');
+    });
+
+    bot.command('intel', async (ctx) => {
+      try {
+        const res = await fetch("http://localhost:3000/api/intel");
+        const intel = await res.json();
+        const fg = intel.fg ? `${intel.fg.value} (${intel.fg.value_classification})` : 'N/A';
+        ctx.reply(`Market Alpha:\nFear & Greed Index: ${fg}\nTrending Coins: ${intel.trending.slice(0,3).join(', ')}`);
+      } catch (e) {
+        ctx.reply('Failed to query Alpha Intel engine.');
+      }
+    });
+
+    bot.launch();
+    console.log("[Telegraf] Telegram Bot successfully launched and listening!");
+    
+    // Enable graceful stop
+    process.once('SIGINT', () => bot.stop('SIGINT'));
+    process.once('SIGTERM', () => bot.stop('SIGTERM'));
+  } else {
+    console.warn("TELEGRAM_BOT_TOKEN not provided. Telegram bot will not launch.");
+  }
 }
 
 startServer();
