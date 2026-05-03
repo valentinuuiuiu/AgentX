@@ -326,46 +326,58 @@ class BacktestEngine:
         return trades
     
     def calculate_metrics(self, trades: List[Dict], initial_capital: float = 10000) -> BacktestResult:
-        """Calculate performance metrics from trades"""
+        """Calculate performance metrics from trades in a single pass"""
         if not trades:
-            return BacktestResult(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, [])
-        
-        winning_trades = [t for t in trades if t['pnl'] > 0]
-        losing_trades = [t for t in trades if t['pnl'] <= 0]
+            return BacktestResult(total_trades=0, winning_trades=0, losing_trades=0, win_rate=0.0, total_return=0.0, avg_win=0.0, avg_loss=0.0, profit_factor=0.0, sharpe_ratio=0.0, max_drawdown=0.0, trades=[])
         
         total_trades = len(trades)
-        winning_count = len(winning_trades)
-        losing_count = len(losing_trades)
+        winning_pnls = []
+        losing_pnls = []
+        pnl_percents = []
+        total_pnl = 0.0
         
-        win_rate = winning_count / total_trades if total_trades > 0 else 0
+        current_capital = initial_capital
+        peak = initial_capital
+        max_drawdown = 0.0
+
+        for t in trades:
+            pnl = t['pnl']
+            total_pnl += pnl
+            pnl_percents.append(t['pnl_percent'])
+
+            if pnl > 0:
+                winning_pnls.append(pnl)
+            else:
+                losing_pnls.append(pnl)
+
+            # Inline Max Drawdown calculation
+            current_capital += pnl
+            if current_capital > peak:
+                peak = current_capital
+
+            if peak > 0:
+                drawdown = (peak - current_capital) / peak
+                if drawdown > max_drawdown:
+                    max_drawdown = drawdown
+
+        winning_count = len(winning_pnls)
+        losing_count = len(losing_pnls)
+        win_rate = winning_count / total_trades
         
-        total_pnl = sum(t['pnl'] for t in trades)
         total_return = (total_pnl / initial_capital) * 100
         
-        avg_win = np.mean([t['pnl'] for t in winning_trades]) if winning_trades else 0
-        avg_loss = np.mean([t['pnl'] for t in losing_trades]) if losing_trades else 0
+        avg_win = np.mean(winning_pnls) if winning_pnls else 0.0
+        avg_loss = np.mean(losing_pnls) if losing_pnls else 0.0
         
-        profit_factor = abs(sum(t['pnl'] for t in winning_trades) / sum(t['pnl'] for t in losing_trades)) if losing_trades and sum(t['pnl'] for t in losing_trades) != 0 else float('inf')
+        win_pnl_sum = sum(winning_pnls)
+        loss_pnl_sum = sum(losing_pnls)
+        profit_factor = abs(win_pnl_sum / loss_pnl_sum) if loss_pnl_sum != 0 else float('inf')
         
         # Calculate Sharpe ratio (simplified)
-        returns = [t['pnl_percent'] for t in trades]
-        if len(returns) > 1:
-            sharpe_ratio = np.mean(returns) / (np.std(returns) + 1e-8) * np.sqrt(252)  # Annualized
+        if len(pnl_percents) > 1:
+            sharpe_ratio = np.mean(pnl_percents) / (np.std(pnl_percents) + 1e-8) * np.sqrt(252)  # Annualized
         else:
-            sharpe_ratio = 0
-        
-        # Calculate max drawdown
-        capital_curve = [initial_capital]
-        for trade in trades:
-            capital_curve.append(capital_curve[-1] + trade['pnl'])
-        
-        peak = capital_curve[0]
-        max_drawdown = 0
-        for capital in capital_curve:
-            if capital > peak:
-                peak = capital
-            drawdown = (peak - capital) / peak
-            max_drawdown = max(max_drawdown, drawdown)
+            sharpe_ratio = 0.0
         
         max_drawdown *= 100  # Convert to percentage
         
