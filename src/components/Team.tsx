@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BrainCircuit, LineChart as LineChartIcon, Coins, Wrench, Sparkles, Terminal, Activity, CheckCircle, Clock } from 'lucide-react';
+import { BrainCircuit, LineChart as LineChartIcon, Coins, Wrench, Sparkles, Terminal, Activity, CheckCircle, Clock, Power } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
 import Avatar from 'boring-avatars';
+import { toast } from 'sonner';
 
 const generateAvatarColors = (seed: string, primaryColor: string) => {
   let hash = 0;
@@ -34,6 +35,7 @@ const initialAgents = [
     description: 'A highly elevated, holistic agent belonging to no one and to all. Connects data and philosophy.',
     icon: <Sparkles className="w-6 h-6 text-fuchsia-400" />,
     status: 'Ascended',
+    isOnline: true,
     workload: 12,
     activeTasks: ['Global Sentiment Analysis', 'Philosophical Alignment'],
     performance: generatePerformanceData(),
@@ -45,6 +47,7 @@ const initialAgents = [
     description: 'Analyzes macroeconomic trends and executes trades on traditional equities and indices.',
     icon: <LineChartIcon className="w-6 h-6 text-blue-400" />,
     status: 'Active',
+    isOnline: true,
     workload: 85,
     activeTasks: ['Scanning traditional markets', 'Monitoring Fed speak'],
     performance: generatePerformanceData(),
@@ -56,6 +59,7 @@ const initialAgents = [
     description: 'Scans multiple blockchains (Ethereum, Arbitrum, Optimism) for zero-fee arbitrage opportunities.',
     icon: <BrainCircuit className="w-6 h-6 text-purple-400" />,
     status: 'Scanning',
+    isOnline: true,
     workload: 92,
     activeTasks: ['ETH/USDC spread analysis', 'Bridge latency check'],
     performance: generatePerformanceData(),
@@ -67,6 +71,7 @@ const initialAgents = [
     description: 'Monitors precious metals (Gold, Silver) and major currency pairs for high-probability setups.',
     icon: <Coins className="w-6 h-6 text-amber-400" />,
     status: 'Active',
+    isOnline: true,
     workload: 45,
     activeTasks: ['Gold chart technicals', 'EUR/USD volume analysis'],
     performance: generatePerformanceData(),
@@ -78,6 +83,7 @@ const initialAgents = [
     description: 'Assists with system maintenance, debt management, and coordinates the trading syndicate.',
     icon: <Wrench className="w-6 h-6 text-emerald-400" />,
     status: 'Standing By',
+    isOnline: true,
     workload: 5,
     activeTasks: ['Log rotation', 'Health checks'],
     performance: generatePerformanceData(),
@@ -89,6 +95,7 @@ const initialAgents = [
     description: 'Autonomous scanner monitoring GitHub for new Web3 repos, testing and auditing smart contracts.',
     icon: <Terminal className="w-6 h-6 text-indigo-400" />,
     status: 'Active',
+    isOnline: true,
     workload: 68,
     activeTasks: ['Auditing new DEX repo', 'Cloning sol files'],
     performance: generatePerformanceData(),
@@ -100,6 +107,7 @@ const initialAgents = [
     description: 'Monitors mempools for large transactions, front-running opportunities, and whale accumulation.',
     icon: <Activity className="w-6 h-6 text-cyan-400" />,
     status: 'Scanning',
+    isOnline: true,
     workload: 88,
     activeTasks: ['Tracking 0x...7aB2', 'MEV Sandwich Scan'],
     performance: generatePerformanceData(),
@@ -132,17 +140,36 @@ export function Team() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setAgents(prev => prev.map(agent => ({
-        ...agent,
-        workload: Math.max(0, Math.min(100, agent.workload + (Math.random() * 10 - 5))),
-        performance: [
-          ...agent.performance.slice(1),
-          { time: Date.now(), value: Math.max(40, Math.min(100, agent.performance[agent.performance.length - 1].value + (Math.random() * 10 - 5))) }
-        ]
-      })));
+      setAgents(prev => prev.map(agent => {
+        if (!agent.isOnline) return agent;
+        return {
+          ...agent,
+          workload: Math.max(0, Math.min(100, agent.workload + (Math.random() * 10 - 5))),
+          performance: [
+            ...agent.performance.slice(1),
+            { time: Date.now(), value: Math.max(40, Math.min(100, agent.performance[agent.performance.length - 1].value + (Math.random() * 10 - 5))) }
+          ]
+        };
+      }));
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const toggleAgentStatus = (name: string) => {
+    setAgents(prev => prev.map(agent => {
+      if (agent.name === name) {
+        const newStatus = !agent.isOnline;
+        toast.success(`${agent.name} is now ${newStatus ? 'ONLINE' : 'OFFLINE'}`);
+        return { 
+          ...agent, 
+          isOnline: newStatus,
+          workload: newStatus ? agent.workload : 0,
+          activeTasks: newStatus ? agent.activeTasks : [] 
+        };
+      }
+      return agent;
+    }));
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -176,12 +203,13 @@ export function Team() {
                 </div>
               </div>
               <span className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${
+                !agent.isOnline ? 'bg-slate-800/80 text-slate-500 border-slate-700' :
                 agent.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                 agent.status === 'Scanning' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                 agent.status === 'Ascended' ? 'bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/30 shadow-[0_0_15px_rgba(192,38,211,0.3)]' :
                 'bg-slate-800 text-slate-300 border-slate-700'
               }`}>
-                {agent.status}
+                {agent.isOnline ? agent.status : 'Offline'}
               </span>
             </div>
             
@@ -245,16 +273,23 @@ export function Team() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="mt-auto pt-4 border-t border-slate-800 flex gap-3">
-              <button className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg text-sm font-medium transition-colors border border-slate-700 hover:border-slate-600">
-                Configure Protocol
+              <button 
+                onClick={() => toggleAgentStatus(agent.name)}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors border flex items-center justify-center gap-2 ${
+                  agent.isOnline 
+                  ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/20' 
+                  : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20'
+                }`}
+              >
+                <Power className="w-4 h-4" />
+                {agent.isOnline ? 'Halt Agent' : 'Activate Agent'}
               </button>
               <button 
                 onClick={() => setShowLogs(agent.name)}
                 className="flex-1 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 py-2 rounded-lg text-sm font-medium transition-colors border border-indigo-500/20"
               >
-                View Agent Logs
+                View Logs
               </button>
             </div>
           </div>
