@@ -8,7 +8,7 @@ from datetime import datetime
 from openai import OpenAI
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "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")
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 AGENT_COMMAND_CHANNEL = "rehoboam:commands"
 
 class AgentRunner:
