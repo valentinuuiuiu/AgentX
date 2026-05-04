@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRightLeft, ShieldCheck, Key, AlertCircle, Link, Hexagon, Activity } from 'lucide-react';
 import { toast } from 'sonner';
+import { ethers } from 'ethers';
 
 export function WalletView() {
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [walletType, setWalletType] = useState<'CEX' | 'MetaMask' | 'Talisman' | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [ethBalance, setEthBalance] = useState<string>('0.00');
 
   const [orderAsset, setOrderAsset] = useState('SPY');
   const [orderQuantity, setOrderQuantity] = useState('');
@@ -30,16 +33,25 @@ export function WalletView() {
     }
   };
 
+  const fetchWalletData = async (provider: any) => {
+    try {
+      const ethersProvider = new ethers.BrowserProvider(provider);
+      const signer = await ethersProvider.getSigner();
+      const address = await signer.getAddress();
+      const balance = await ethersProvider.getBalance(address);
+      setWalletAddress(address);
+      setEthBalance(Number(ethers.formatEther(balance)).toFixed(4));
+    } catch (error) {
+      console.error("Failed to fetch wallet data:", error);
+    }
+  };
+
   const connectWeb3Wallet = async (providerName: 'MetaMask' | 'Talisman') => {
     try {
       let provider = null;
       if (providerName === 'MetaMask' && (window as any).ethereum) {
         provider = (window as any).ethereum;
-        if (provider.isMetaMask) {
-          await provider.request({ method: 'eth_requestAccounts' });
-        } else {
-          throw new Error('MetaMask is not installed');
-        }
+        await provider.request({ method: 'eth_requestAccounts' });
       } else if (providerName === 'Talisman' && (window as any).talismanEth) {
         provider = (window as any).talismanEth;
         await provider.request({ method: 'eth_requestAccounts' });
@@ -49,6 +61,26 @@ export function WalletView() {
 
       setIsConnected(true);
       setWalletType(providerName);
+
+      await fetchWalletData(provider);
+
+      // Listen for account changes
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length > 0) {
+          fetchWalletData(provider);
+        } else {
+          setIsConnected(false);
+          setWalletType(null);
+          setWalletAddress(null);
+          setEthBalance('0.00');
+          toast.info("Wallet disconnected.");
+        }
+      };
+
+      // Cleanup previous listener if any, then add new one
+      provider.removeListener?.('accountsChanged', handleAccountsChanged);
+      provider.on('accountsChanged', handleAccountsChanged);
+
       toast.success(`${providerName} Wallet connected successfully! You can now execute on-chain zero-fee routes.`);
     } catch (e: any) {
       toast.error(`Connection failed: ${e.message}`);
@@ -180,9 +212,12 @@ export function WalletView() {
                   <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2 py-0.5 rounded flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
                     {walletType || 'CEX'} Connected
+                    {walletAddress && ` (${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)})`}
                   </span>
                 </div>
-                <div className="text-5xl font-bold text-white mb-8">$0.00</div>
+                <div className="text-5xl font-bold text-white mb-8">
+                  {(!walletType || walletType === 'CEX') ? '$0.00' : `Ξ ${ethBalance}`}
+                </div>
                 
                 <div className="flex gap-4">
                   <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2">
@@ -193,6 +228,8 @@ export function WalletView() {
                     onClick={() => {
                       setIsConnected(false);
                       setWalletType(null);
+                      setWalletAddress(null);
+                      setEthBalance('0.00');
                       toast.info("Wallet disconnected.");
                     }}
                     className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors border border-slate-700 flex items-center gap-2"
