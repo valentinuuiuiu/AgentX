@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { ArrowRightLeft, ShieldCheck, Key, AlertCircle, Link, Hexagon, Activity } from 'lucide-react';
 import { toast } from 'sonner';
-import { BrowserProvider, formatEther } from 'ethers';
 
 export function WalletView() {
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [walletType, setWalletType] = useState<'CEX' | 'MetaMask' | 'Talisman' | null>(null);
-  const [balance, setBalance] = useState('0.00');
 
   const [orderAsset, setOrderAsset] = useState('SPY');
   const [orderQuantity, setOrderQuantity] = useState('');
@@ -34,29 +32,19 @@ export function WalletView() {
 
   const connectWeb3Wallet = async (providerName: 'MetaMask' | 'Talisman') => {
     try {
-      let rawProvider = null;
+      let provider = null;
       if (providerName === 'MetaMask' && (window as any).ethereum) {
-        rawProvider = (window as any).ethereum;
-        if (!rawProvider.isMetaMask) {
+        provider = (window as any).ethereum;
+        if (provider.isMetaMask) {
+          await provider.request({ method: 'eth_requestAccounts' });
+        } else {
           throw new Error('MetaMask is not installed');
         }
       } else if (providerName === 'Talisman' && (window as any).talismanEth) {
-        rawProvider = (window as any).talismanEth;
+        provider = (window as any).talismanEth;
+        await provider.request({ method: 'eth_requestAccounts' });
       } else {
         throw new Error(`${providerName} extension not found in browser.`);
-      }
-
-      const provider = new BrowserProvider(rawProvider);
-      await provider.send('eth_requestAccounts', []);
-      const signer = await provider.getSigner();
-      const address = await signer.getAddress();
-
-      try {
-        const balanceWei = await provider.getBalance(address);
-        setBalance(formatEther(balanceWei));
-      } catch (e) {
-        console.warn('Failed to fetch actual balance, defaulting to 0.00', e);
-        setBalance('0.00');
       }
 
       setIsConnected(true);
@@ -194,9 +182,7 @@ export function WalletView() {
                     {walletType || 'CEX'} Connected
                   </span>
                 </div>
-                <div className="text-5xl font-bold text-white mb-8">
-                  {walletType === 'CEX' || !walletType ? '$0.00' : `${parseFloat(balance).toFixed(4)} ETH`}
-                </div>
+                <div className="text-5xl font-bold text-white mb-8">$0.00</div>
                 
                 <div className="flex gap-4">
                   <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2">

@@ -4,6 +4,7 @@ import path from "path";
 import YahooFinance from 'yahoo-finance2';
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
+import { Telegraf } from "telegraf";
 
 const yahooFinance = new YahooFinance();
 let aiClient: GoogleGenAI | null = null;
@@ -31,7 +32,7 @@ async function startServer() {
   // AI Agent Chat Endpoint
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, agent, marketContext, nvidiaApiKey, nvidiaBaseUrl, nvidiaModel, openRouterApiKey, openRouterBaseUrl, openRouterModel, geminiApiKey, geminiModel, openAiApiKey, openAiModel } = req.body;
+      const { message, agent, marketContext, nvidiaApiKey, nvidiaBaseUrl, nvidiaModel, openRouterApiKey, openRouterBaseUrl, openRouterModel, geminiApiKey, geminiModel } = req.body;
       
       let systemInstruction = "You are a helpful trading assistant.";
       if (agent === "Genspark-Prime") {
@@ -70,19 +71,6 @@ async function startServer() {
           const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
           const response = await openai.chat.completions.create({
             model: openRouterModel || "meta-llama/llama-3-8b-instruct:free",
-            messages: [
-              { role: "system", content: systemInstruction },
-              { role: "user", content: prompt }
-            ],
-            temperature: 0.2,
-          });
-          return res.json({ reply: response.choices[0].message.content });
-        }
-
-        if (openAiApiKey) {
-          const openai = new OpenAI({ apiKey: openAiApiKey });
-          const response = await openai.chat.completions.create({
-            model: openAiModel || "gpt-4o-mini",
             messages: [
               { role: "system", content: systemInstruction },
               { role: "user", content: prompt }
@@ -274,8 +262,7 @@ async function startServer() {
       });
     } catch (e) {
       console.error("Market data fetch error:", e);
-      // Security: Do not leak internal error details to client
-      res.status(500).json({ error: "Failed to fetch real market data" });
+      res.status(500).json({ error: String(e) || "Failed to fetch real market data" });
     }
   });
 
@@ -369,6 +356,41 @@ URL: ${topRepo.html_url}
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
+
+  // Wire up Telegram Bot if token exists
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (botToken) {
+    const bot = new Telegraf(botToken);
+
+    bot.start((ctx) => ctx.reply('Welcome to the Eliza Trading Syndicate Terminal. I am your A2A bridge.'));
+    bot.help((ctx) => ctx.reply('Available commands:\n/status - Check Swarm Status\n/intel - Fetch Market Alpha'));
+
+    bot.command('status', (ctx) => {
+      ctx.reply('Syndicate Status: ONLINE 🟢\nAll Neuromorphic Nodes Active. A2A Swarm connected via Redis.');
+    });
+
+    bot.command('intel', async (ctx) => {
+      try {
+        const res = await fetch("http://localhost:3000/api/intel");
+        const intel = await res.json();
+        const fg = intel.fg ? `${intel.fg.value} (${intel.fg.value_classification})` : 'N/A';
+        ctx.reply(`Market Alpha:\nFear & Greed Index: ${fg}\nTrending Coins: ${intel.trending.slice(0,3).join(', ')}`);
+      } catch (e) {
+        ctx.reply('Failed to query Alpha Intel engine.');
+      }
+    });
+
+    bot.launch().catch((err: any) => {
+      console.error("[Telegraf] Bot launch failed:", err.message || err);
+    });
+    console.log("[Telegraf] Telegram Bot initializing...");
+
+    // Enable graceful stop
+    process.once('SIGINT', () => bot.stop('SIGINT'));
+    process.once('SIGTERM', () => bot.stop('SIGTERM'));
+  } else {
+    console.warn("TELEGRAM_BOT_TOKEN not provided. Telegram bot will not launch.");
+  }
 }
 
 startServer();

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { GitMerge, BrainCircuit, Activity, ShieldAlert, LineChart as LineChartIcon, CheckCircle2, XCircle, Clock, MessagesSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { GitMerge, BrainCircuit, Activity, ShieldAlert, LineChart as LineChartIcon, CheckCircle2, XCircle, Clock } from 'lucide-react';
 
 type ConsensusStatus = 'pending' | 'processing' | 'approved' | 'rejected';
 
@@ -17,52 +17,8 @@ interface Proposal {
   finalVerdict: ConsensusStatus;
 }
 
-interface A2AMessage {
-  id: string;
-  sender: string;
-  receiver: string | 'ALL';
-  message: string;
-  time: number;
-}
-
 export function WarRoom() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [a2aMessages, setA2AMessages] = useState<A2AMessage[]>([]);
-  const a2aRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const a2aLogs = [
-      { sender: 'Leviathan-X', receiver: 'Cipher-Q', msg: 'Large MEV sandwich detected on PEPE pool. Requesting contract audit for new router.' },
-      { sender: 'Cipher-Q', receiver: 'ALL', msg: 'Audit complete. Zero reentrancy vectors. LP locks verified.' },
-      { sender: 'DeepSeek-V4-Pro', receiver: 'MiniMax-m2.7', msg: 'TradFi indices dropping. S&P500 volatility spiking. Shift liquidity to stables?' },
-      { sender: 'MiniMax-m2.7', receiver: 'GLM-5.1', msg: 'Arbitrage spreads widening on ETH/USDC across L2s. Gas spikes imminent.' },
-      { sender: 'Genspark-Prime', receiver: 'ALL', msg: 'Maintain equilibrium. Volatility is our advantage. Proceed with strategic TWAP accumulations.' },
-      { sender: 'GLM-5.1', receiver: 'DeepSeek-V4-Pro', msg: 'Gold (XAU) finding support. Correlation with BTC breaking over 4h timeframe.' },
-      { sender: 'Helper Agent', receiver: 'ALL', msg: 'RPC nodes rotated. Latency stable at 45ms. Database synced.' },
-    ];
-
-    const messageInterval = setInterval(() => {
-      const randomLog = a2aLogs[Math.floor(Math.random() * a2aLogs.length)];
-      setA2AMessages(prev => {
-        const newArr = [...prev, {
-          id: Math.random().toString(36).substr(2, 9),
-          sender: randomLog.sender,
-          receiver: randomLog.receiver,
-          message: randomLog.msg,
-          time: Date.now()
-        }];
-        if (newArr.length > 50) return newArr.slice(newArr.length - 50);
-        return newArr;
-      });
-      
-      // Auto scroll
-      if (a2aRef.current) {
-        a2aRef.current.scrollTop = a2aRef.current.scrollHeight;
-      }
-    }, 4500);
-
-    return () => clearInterval(messageInterval);
-  }, []);
 
   useEffect(() => {
     // Simulate the Multi-Agent Pipeline
@@ -84,7 +40,7 @@ export function WarRoom() {
         ]
       };
 
-      setProposals(prev => [newProposal, ...prev].slice(0, 4));
+      setProposals(prev => [newProposal, ...prev].slice(0, 5));
 
       // Step-by-step resolution simulation
       setTimeout(() => updateStep(newProposal.id, 0, 'approved', `Contract verified. No mint risk. Score: 95/100`), 2000);
@@ -107,7 +63,7 @@ export function WarRoom() {
         }));
       }, 8000);
 
-    }, 20000); // New proposal every 20s
+    }, 15000); // New proposal every 15s
 
     return () => clearInterval(interval);
   }, []);
@@ -142,111 +98,80 @@ export function WarRoom() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <h3 className="text-lg font-bold text-slate-200 border-b border-slate-800 pb-2 mb-4">Consensus Validations</h3>
-          {proposals.map(proposal => (
-            <div key={proposal.id} className={`bg-slate-900 border rounded-xl p-6 transition-all shadow-lg overflow-hidden relative ${
-              proposal.finalVerdict === 'approved' ? 'border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)]' :
-              proposal.finalVerdict === 'rejected' ? 'border-rose-500/30' :
-              'border-slate-800'
-            }`}>
-              {/* Background Status Blur */}
-              {proposal.finalVerdict === 'approved' && <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none" />}
-              {proposal.finalVerdict === 'rejected' && <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 blur-[100px] pointer-events-none" />}
+      <div className="space-y-6">
+        {proposals.map(proposal => (
+          <div key={proposal.id} className={`bg-slate-900 border rounded-xl p-6 transition-all shadow-lg overflow-hidden relative ${
+            proposal.finalVerdict === 'approved' ? 'border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)]' :
+            proposal.finalVerdict === 'rejected' ? 'border-rose-500/30' :
+            'border-slate-800'
+          }`}>
+            {/* Background Status Blur */}
+            {proposal.finalVerdict === 'approved' && <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none" />}
+            {proposal.finalVerdict === 'rejected' && <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 blur-[100px] pointer-events-none" />}
 
-              <div className="flex justify-between items-center mb-6 border-b border-slate-800/50 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-slate-800 p-2 rounded-lg">
-                    <BrainCircuit className="w-6 h-6 text-fuchsia-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                      Proposal: BUY {proposal.asset}
-                      {proposal.finalVerdict === 'processing' && <span className="flex items-center gap-1 text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded uppercase tracking-widest"><Clock className="w-3 h-3 animate-spin"/> Debating</span>}
-                      {proposal.finalVerdict === 'approved' && <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded uppercase tracking-widest"><CheckCircle2 className="w-3 h-3"/> Executed</span>}
-                      {proposal.finalVerdict === 'rejected' && <span className="flex items-center gap-1 text-[10px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded uppercase tracking-widest"><XCircle className="w-3 h-3"/> Rejected</span>}
-                    </h3>
-                    <div className="text-sm font-mono text-slate-400 mt-1">
-                      Signal Source: <span className="text-cyan-400">{proposal.source}</span>
-                    </div>
+            <div className="flex justify-between items-center mb-6 border-b border-slate-800/50 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-slate-800 p-2 rounded-lg">
+                  <BrainCircuit className="w-6 h-6 text-fuchsia-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    Proposal: BUY {proposal.asset}
+                    {proposal.finalVerdict === 'processing' && <span className="flex items-center gap-1 text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded uppercase tracking-widest"><Clock className="w-3 h-3 animate-spin"/> Debating</span>}
+                    {proposal.finalVerdict === 'approved' && <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded uppercase tracking-widest"><CheckCircle2 className="w-3 h-3"/> Executed</span>}
+                    {proposal.finalVerdict === 'rejected' && <span className="flex items-center gap-1 text-[10px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded uppercase tracking-widest"><XCircle className="w-3 h-3"/> Rejected</span>}
+                  </h3>
+                  <div className="text-sm font-mono text-slate-400 mt-1">
+                    Signal Source: <span className="text-cyan-400">{proposal.source}</span>
                   </div>
                 </div>
-                <div className="text-xs text-slate-500 font-mono">
-                  {new Date(proposal.time).toLocaleTimeString()}
-                </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {proposal.steps.map((step, idx) => (
-                  <div key={idx} className="relative flex flex-col bg-slate-950 border border-slate-800/60 rounded-lg p-4">
-                    {/* Connection Line (Desktop) */}
-                    {idx < 3 && <div className="hidden md:block absolute top-[50%] -right-4 w-4 border-t border-slate-800 border-dashed transform -translate-y-1/2 z-0"></div>}
-                    
-                    <div className="flex items-center gap-2 mb-3 z-10">
-                      {step.status === 'pending' && <Clock className="w-4 h-4 text-slate-600" />}
-                      {step.status === 'processing' && <Activity className="w-4 h-4 text-blue-400 animate-pulse" />}
-                      {step.status === 'approved' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                      {step.status === 'rejected' && <XCircle className="w-4 h-4 text-rose-400" />}
-                      <span className="font-bold text-sm text-slate-300">{step.agent}</span>
-                    </div>
-                    
-                    <div className="text-xs text-slate-500 uppercase tracking-widest font-semibold mb-2">
-                      {step.role}
-                    </div>
-                    
-                    <div className="text-[11px] font-mono leading-relaxed h-12 overflow-hidden text-slate-400">
-                      {step.status === 'pending' ? (
-                        <span className="text-slate-600">Waiting for turn...</span>
-                      ) : step.log ? (
-                        <span className={step.status === 'approved' ? 'text-emerald-400/80' : step.status === 'rejected' ? 'text-rose-400/80' : ''}>
-                          &gt; {step.log}
-                        </span>
-                      ) : (
-                        <span className="text-blue-400/50 animate-pulse">&gt; Processing neural weights...</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="text-xs text-slate-500 font-mono">
+                {new Date(proposal.time).toLocaleTimeString()}
               </div>
-              
             </div>
-          ))}
 
-          {proposals.length === 0 && (
-            <div className="text-center py-20 text-slate-500 animate-pulse font-mono text-sm">
-              Listening to global network state... Awaiting alpha signals to initiate consensus...
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {proposal.steps.map((step, idx) => (
+                <div key={idx} className="relative flex flex-col bg-slate-950 border border-slate-800/60 rounded-lg p-4">
+                  {/* Connection Line (Desktop) */}
+                  {idx < 3 && <div className="hidden md:block absolute top-[50%] -right-4 w-4 border-t border-slate-800 border-dashed transform -translate-y-1/2 z-0"></div>}
+
+                  <div className="flex items-center gap-2 mb-3 z-10">
+                    {step.status === 'pending' && <Clock className="w-4 h-4 text-slate-600" />}
+                    {step.status === 'processing' && <Activity className="w-4 h-4 text-blue-400 animate-pulse" />}
+                    {step.status === 'approved' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                    {step.status === 'rejected' && <XCircle className="w-4 h-4 text-rose-400" />}
+                    <span className="font-bold text-sm text-slate-300">{step.agent}</span>
+                  </div>
+
+                  <div className="text-xs text-slate-500 uppercase tracking-widest font-semibold mb-2">
+                    {step.role}
+                  </div>
+
+                  <div className="text-[11px] font-mono leading-relaxed h-12 overflow-hidden text-slate-400">
+                    {step.status === 'pending' ? (
+                      <span className="text-slate-600">Waiting for turn...</span>
+                    ) : step.log ? (
+                      <span className={step.status === 'approved' ? 'text-emerald-400/80' : step.status === 'rejected' ? 'text-rose-400/80' : ''}>
+                        &gt; {step.log}
+                      </span>
+                    ) : (
+                      <span className="text-blue-400/50 animate-pulse">&gt; Processing neural weights...</span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
 
-        {/* Live A2A Comms Console */}
-        <div className="lg:col-span-1 border border-[#1a1a2e] bg-[#0a0a14] rounded-xl flex flex-col h-[600px] overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.4)]">
-          <div className="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-10">
-            <h3 className="text-sm font-bold text-indigo-400 flex items-center gap-2 uppercase tracking-widest">
-              <MessagesSquare className="w-4 h-4" /> Live A2A Neural Matrix
-            </h3>
           </div>
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 font-mono text-xs" ref={a2aRef}>
-            {a2aMessages.map((msg) => (
-              <div key={msg.id} className="bg-slate-950/50 border border-slate-800/50 rounded-lg p-3">
-                <div className="flex justify-between items-center mb-1 text-[10px] text-slate-500 uppercase tracking-wider">
-                  <span className="text-fuchsia-400/80">{msg.sender}</span>
-                  <span className="opacity-50">→</span>
-                  <span className={msg.receiver === 'ALL' ? 'text-amber-400/80' : 'text-blue-400/80'}>{msg.receiver}</span>
-                </div>
-                <div className="text-slate-300 leading-relaxed break-words">
-                  &gt; {msg.message}
-                </div>
-              </div>
-            ))}
-            {a2aMessages.length === 0 && (
-              <div className="text-slate-600 animate-pulse flex h-full items-center justify-center">
-                Establishing peer-to-peer neural connections...
-              </div>
-            )}
+        ))}
+
+        {proposals.length === 0 && (
+          <div className="text-center py-20 text-slate-500 animate-pulse font-mono text-sm">
+            Listening to global network state... Awaiting alpha signals to initiate consensus...
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

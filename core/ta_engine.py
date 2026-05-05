@@ -5,6 +5,7 @@ Rehoboam Trading Engine - Core TA Engine with risk integration
 import numpy as np
 from typing import Dict, List, Optional
 from datetime import datetime
+import random
 
 
 class TAEngine:

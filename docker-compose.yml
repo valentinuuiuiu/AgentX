@@ -1,16 +1,131 @@
 version: '3.8'
 
 services:
-  eliza-syndicate:
-    build: .
-    container_name: eliza-syndicate-core
+  # The Neural Pathway (Message Broker)
+  redis-broker:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - agentx-net
+
+  # The Conductor
+  subagent-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    command: python3 agents/subagent_orchestrator.py
+    environment:
+      - REDIS_URL=redis://redis-broker:6379/0
+      - SURFSENSE_BACKEND=http://surfsense-memory:8929
+    depends_on:
+      - redis-broker
+    networks:
+      - agentx-net
+
+  # Agent: Genspark-Prime (Super Agent)
+  agent-genspark:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    command: python3 agents/run_agent.py --name "Genspark-Prime" --role "Super Agent"
+    environment:
+      - REDIS_URL=redis://redis-broker:6379/0
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+    depends_on:
+      - redis-broker
+    networks:
+      - agentx-net
+
+  # Agent: DeepSeek-V4-Pro (Equities)
+  agent-deepseek:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    command: python3 agents/run_agent.py --name "DeepSeek-V4-Pro" --role "Equities & TradFi Specialist"
+    environment:
+      - REDIS_URL=redis://redis-broker:6379/0
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+    depends_on:
+      - redis-broker
+    networks:
+      - agentx-net
+
+  # Agent: MiniMax-m2.7 (Arbitrage)
+  agent-minimax:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    command: python3 agents/run_agent.py --name "MiniMax-m2.7" --role "Cross-Chain Arbitrage"
+    environment:
+      - REDIS_URL=redis://redis-broker:6379/0
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+    depends_on:
+      - redis-broker
+    networks:
+      - agentx-net
+
+  # Agent: GLM-5.1 (Metals & Forex)
+  agent-glm:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    command: python3 agents/run_agent.py --name "GLM-5.1" --role "Metals & Forex"
+    environment:
+      - REDIS_URL=redis://redis-broker:6379/0
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+    depends_on:
+      - redis-broker
+    networks:
+      - agentx-net
+
+  # Agent: Cipher-Q (Web3)
+  agent-cipherq:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    command: python3 agents/run_agent.py --name "Cipher-Q" --role "Web3 Protocol Architect"
+    environment:
+      - REDIS_URL=redis://redis-broker:6379/0
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    depends_on:
+      - redis-broker
+    networks:
+      - agentx-net
+
+  # Agent: Leviathan-X (Whale Tracker)
+  agent-leviathan:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    command: python3 agents/run_agent.py --name "Leviathan-X" --role "On-Chain Whale Tracker & MEV"
+    environment:
+      - REDIS_URL=redis://redis-broker:6379/0
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+    depends_on:
+      - redis-broker
+    networks:
+      - agentx-net
+
+  # Node.js Frontend & API Bridge
+  agentx-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     ports:
       - "3000:3000"
     environment:
+      - REDIS_URL=redis://redis-broker:6379/0
       - NODE_ENV=production
-      # - GEMINI_API_KEY=your_key_here
-      # - NVIDIA_NIM_API_KEY=your_key_here
-      # - OPEN_ROUTER_API_KEY=your_key_here
-    restart: unless-stopped
-    volumes:
-      - ./data:/app/data
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    depends_on:
+      - redis-broker
+    networks:
+      - agentx-net
+
+networks:
+  agentx-net:
+    driver: bridge
+
+volumes:
+  redis_data:
