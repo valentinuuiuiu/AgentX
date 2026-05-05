@@ -3,7 +3,7 @@ import json
 from openai import OpenAI
 from ta_engine import TAEngine
 from risk_manager import RiskManager
-from config import NVIDIA_API_KEY
+from core.config import NVIDIA_API_KEY
 
 def get_deepseek_reasoning(market_data, ta_signals):
     client = OpenAI(

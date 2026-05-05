@@ -6,10 +6,7 @@ import redis
 import os
 from datetime import datetime
 from openai import OpenAI
-import sys
-# Add core to path to import config
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'core'))
-from config import NVIDIA_API_KEY
+from core.config import NVIDIA_API_KEY
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 AGENT_COMMAND_CHANNEL = "rehoboam:commands"

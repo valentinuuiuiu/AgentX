@@ -9,7 +9,7 @@ import json
 import itertools
 from typing import Dict, List, Tuple, Any, Optional
 import asyncio
-from backtest_engine import BacktestEngine, BacktestResult
+from ml.backtest_engine import BacktestEngine, BacktestResult
 
 class ParameterOptimizer:
     def __init__(self, backtest_engine: BacktestEngine = None):
