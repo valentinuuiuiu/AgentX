@@ -3,9 +3,7 @@ import json
 from openai import OpenAI
 from ta_engine import TAEngine
 from risk_manager import RiskManager
-
-# Nvidia NIM API Setup for DeepSeek V4 Pro
-NVIDIA_API_KEY = "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"
+from config import NVIDIA_API_KEY
 
 def get_deepseek_reasoning(market_data, ta_signals):
     client = OpenAI(
