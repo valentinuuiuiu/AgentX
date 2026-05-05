@@ -5,7 +5,6 @@ Rehoboam Trading Engine - Core TA Engine with risk integration
 import numpy as np
 from typing import Dict, List, Optional
 from datetime import datetime
-import random
 
 
 class TAEngine:
@@ -45,9 +44,9 @@ class TAEngine:
 
         signal = {"symbol": symbol, "timestamp": datetime.now().isoformat(), "action": "HOLD"}
 
-        if rsi and rsi < 30:
+        if rsi is not None and rsi < 30:
             signal["action"] = "BUY"
-        elif rsi and rsi > 70:
+        elif rsi is not None and rsi > 70:
             signal["action"] = "SELL"
 
         if self.risk_manager:
