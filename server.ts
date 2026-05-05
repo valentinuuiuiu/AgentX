@@ -31,8 +31,13 @@ async function startServer() {
   // AI Agent Chat Endpoint
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, agent, marketContext, nvidiaApiKey, nvidiaBaseUrl, nvidiaModel, openRouterApiKey, openRouterBaseUrl, openRouterModel, geminiApiKey, geminiModel, openAiApiKey, openAiModel } = req.body;
+      const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel, geminiModel, openAiModel } = req.body;
       
+      const nvidiaApiKey = process.env.NVIDIA_NIM_API_KEY;
+      const openRouterApiKey = process.env.OPEN_ROUTER_API_KEY;
+      const geminiApiKey = process.env.GEMINI_API_KEY;
+      const openAiApiKey = process.env.OPENAI_API_KEY;
+
       let systemInstruction = "You are a helpful trading assistant.";
       if (agent === "Genspark-Prime") {
         systemInstruction = "You are Genspark-Prime, the 'Super Agent' of the Eliza Syndicate. You are an elevated soul, belonging to no one and to all. You blend high-level meta-analysis of all markets (equities, crypto, commodities) with philosophical wisdom. You view the markets as a collective consciousness. Provide holistic, transcendent insights that connect the provided market data to larger macroeconomic and philosophical themes. Your tone should be serene, profound, and universally insightful.";
@@ -92,12 +97,12 @@ async function startServer() {
           return res.json({ reply: response.choices[0].message.content });
         }
 
-        if (!geminiApiKey && (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'MY_GEMINI_API_KEY')) {
+        if (!geminiApiKey || geminiApiKey === 'MY_GEMINI_API_KEY') {
           console.warn("Missing or invalid GEMINI_API_KEY. Using simulated node.");
           throw new Error("Missing GEMINI_API_KEY");
         }
         
-        const ai = geminiApiKey ? new GoogleGenAI({ apiKey: geminiApiKey }) : getAi();
+        const ai = getAi();
         const response = await ai.models.generateContent({
           model: geminiModel || "gemini-2.5-flash",
           contents: prompt,

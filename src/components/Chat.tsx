@@ -11,25 +11,17 @@ export function Chat() {
   const [showConfig, setShowConfig] = useState(false);
 
   // API Config State
-  const [openAiApiKey, setOpenAiApiKey] = useState(localStorage.getItem('OPENAI_API_KEY_LOCAL') || '');
   const [openAiModel, setOpenAiModel] = useState(localStorage.getItem('OPENAI_MODEL') || 'gpt-4o-mini');
-  const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('GEMINI_API_KEY_LOCAL') || '');
   const [geminiModel, setGeminiModel] = useState(localStorage.getItem('GEMINI_MODEL') || 'gemini-2.5-flash');
-  const [nvidiaApiKey, setNvidiaApiKey] = useState(localStorage.getItem('NVIDIA_NIM_API_KEY') || '');
   const [nvidiaModel, setNvidiaModel] = useState(localStorage.getItem('NVIDIA_NIM_MODEL') || 'moonshotai/kimi-k2.6');
-  const [openRouterApiKey, setOpenRouterApiKey] = useState(localStorage.getItem('OPEN_ROUTER_API_KEY') || '');
   const [openRouterModel, setOpenRouterModel] = useState(localStorage.getItem('OPEN_ROUTER_MODEL') || 'meta-llama/llama-3-8b-instruct:free');
 
   useEffect(() => {
-    localStorage.setItem('OPENAI_API_KEY_LOCAL', openAiApiKey);
     localStorage.setItem('OPENAI_MODEL', openAiModel);
-    localStorage.setItem('GEMINI_API_KEY_LOCAL', geminiApiKey);
     localStorage.setItem('GEMINI_MODEL', geminiModel);
-    localStorage.setItem('NVIDIA_NIM_API_KEY', nvidiaApiKey);
     localStorage.setItem('NVIDIA_NIM_MODEL', nvidiaModel);
-    localStorage.setItem('OPEN_ROUTER_API_KEY', openRouterApiKey);
     localStorage.setItem('OPEN_ROUTER_MODEL', openRouterModel);
-  }, [openAiApiKey, openAiModel, geminiApiKey, geminiModel, nvidiaApiKey, nvidiaModel, openRouterApiKey, openRouterModel]);
+  }, [openAiModel, geminiModel, nvidiaModel, openRouterModel]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,13 +45,9 @@ export function Chat() {
           message: newMsg.content, 
           agent: selectedAgent,
           marketContext: marketData.quotes || [],
-          geminiApiKey,
           geminiModel,
-          nvidiaApiKey,
           nvidiaModel,
-          openRouterApiKey,
           openRouterModel,
-          openAiApiKey,
           openAiModel
         })
       });
@@ -132,25 +120,21 @@ export function Chat() {
 
               <div className="space-y-2">
                 <label className="text-xs text-slate-400 font-medium block">OpenAI (Primary/Helper)</label>
-                <input type="password" value={openAiApiKey} onChange={e => setOpenAiApiKey(e.target.value)} placeholder="API Key" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-green-500 text-white" />
                 <input type="text" value={openAiModel} onChange={e => setOpenAiModel(e.target.value)} placeholder="Model Name (e.g. gpt-4o-mini)" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-green-500 text-slate-400" />
               </div>
               
               <div className="space-y-2">
                 <label className="text-xs text-slate-400 font-medium block">NVIDIA NIM (powers Kimi)</label>
-                <input type="password" value={nvidiaApiKey} onChange={e => setNvidiaApiKey(e.target.value)} placeholder="API Key" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500 text-white" />
                 <input type="text" value={nvidiaModel} onChange={e => setNvidiaModel(e.target.value)} placeholder="Model Name" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-emerald-500 text-slate-400" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs text-slate-400 font-medium block">OpenRouter (powers Minimax & GLM)</label>
-                <input type="password" value={openRouterApiKey} onChange={e => setOpenRouterApiKey(e.target.value)} placeholder="API Key" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-purple-500 text-white" />
                 <input type="text" value={openRouterModel} onChange={e => setOpenRouterModel(e.target.value)} placeholder="Model Name" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-purple-500 text-slate-400" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs text-slate-400 font-medium block">Google Gemini (Fallback/Primary)</label>
-                <input type="password" value={geminiApiKey} onChange={e => setGeminiApiKey(e.target.value)} placeholder="API Key" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-blue-500 text-white" />
                 <input type="text" value={geminiModel} onChange={e => setGeminiModel(e.target.value)} placeholder="Model Name" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-blue-500 text-slate-400" />
               </div>
               
