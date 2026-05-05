@@ -274,7 +274,8 @@ async function startServer() {
       });
     } catch (e) {
       console.error("Market data fetch error:", e);
-      res.status(500).json({ error: String(e) || "Failed to fetch real market data" });
+      // Security: Do not leak internal error details to client
+      res.status(500).json({ error: "Failed to fetch real market data" });
     }
   });
 
