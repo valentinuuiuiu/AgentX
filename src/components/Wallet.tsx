@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRightLeft, ShieldCheck, Key, AlertCircle, Link, Hexagon, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { ethers } from 'ethers';
@@ -10,6 +10,8 @@ export function WalletView() {
   const [walletType, setWalletType] = useState<'CEX' | 'MetaMask' | 'Talisman' | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [ethBalance, setEthBalance] = useState<string>('0.00');
+
+  const providerRef = useRef<any>(null);
 
   const [orderAsset, setOrderAsset] = useState('SPY');
   const [orderQuantity, setOrderQuantity] = useState('');
@@ -61,6 +63,7 @@ export function WalletView() {
 
       setIsConnected(true);
       setWalletType(providerName);
+      providerRef.current = provider;
 
       await fetchWalletData(provider);
 
@@ -78,7 +81,7 @@ export function WalletView() {
       };
 
       // Cleanup previous listener if any, then add new one
-      provider.removeListener?.('accountsChanged', handleAccountsChanged);
+      provider.removeAllListeners?.('accountsChanged');
       provider.on('accountsChanged', handleAccountsChanged);
 
       toast.success(`${providerName} Wallet connected successfully! You can now execute on-chain zero-fee routes.`);
@@ -226,6 +229,10 @@ export function WalletView() {
                   </button>
                   <button 
                     onClick={() => {
+                      if (providerRef.current) {
+                        providerRef.current.removeAllListeners?.('accountsChanged');
+                        providerRef.current = null;
+                      }
                       setIsConnected(false);
                       setWalletType(null);
                       setWalletAddress(null);
