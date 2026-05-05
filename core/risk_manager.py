@@ -1,11 +1,11 @@
 from typing import Dict, Optional
 
 class RiskManager:
-    def __init__(self):
-        self.positions = {}
-        self.max_position = 100.0
+    def __init__(self, positions: Optional[Dict[str, float]] = None, max_position: float = 100.0):
+        self.positions = positions if positions is not None else {}
+        self.max_position = max_position
 
-    def validate_signal(self, signal: Dict, current_price: Optional[float] = None) -> Dict:
+    def validate_signal(self, signal: Dict) -> Dict:
         """Validate trading signal against risk parameters"""
         validated_signal = signal.copy()
 
