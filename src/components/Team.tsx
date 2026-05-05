@@ -316,7 +316,7 @@ export function Team() {
                        <span>{new Date(log.timestamp).toLocaleString()}</span>
                        <span>Target: {log.repoName}</span>
                      </div>
-                     <div className="mb-2 text-slate-400">Stars: {log.stars} | URL: <a href={log.url} target="_blank" className="text-blue-400 hover:underline">{log.url}</a></div>
+                     <div className="mb-2 text-slate-400">Stars: {log.stars} | URL: <a href={log.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{log.url}</a></div>
                      <div className="whitespace-pre-wrap text-emerald-400/90 leading-relaxed border-l-2 border-emerald-500/30 pl-3">
                        {log.report}
                      </div>
