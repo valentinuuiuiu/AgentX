@@ -31,7 +31,11 @@ async function startServer() {
   // AI Agent Chat Endpoint
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, agent, marketContext, nvidiaApiKey, nvidiaBaseUrl, nvidiaModel, openRouterApiKey, openRouterBaseUrl, openRouterModel, geminiApiKey, geminiModel, openAiApiKey, openAiModel } = req.body;
+      const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel, geminiModel, openAiModel } = req.body;
+      const nvidiaApiKey = process.env.NVIDIA_NIM_API_KEY;
+      const openRouterApiKey = process.env.OPEN_ROUTER_API_KEY;
+      const geminiApiKey = process.env.GEMINI_API_KEY;
+      const openAiApiKey = process.env.OPENAI_API_KEY;
       
       let systemInstruction = "You are a helpful trading assistant.";
       if (agent === "Genspark-Prime") {
