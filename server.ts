@@ -31,7 +31,7 @@ async function startServer() {
   // AI Agent Chat Endpoint
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel, geminiModel, openAiModel } = req.body;
+      const { message, agent, marketContext, nvidiaModel, openRouterModel, geminiModel, openAiModel } = req.body;
       
       const nvidiaApiKey = process.env.NVIDIA_NIM_API_KEY;
       const openRouterApiKey = process.env.OPEN_ROUTER_API_KEY;
@@ -58,7 +58,7 @@ async function startServer() {
 
       try {
         if (nvidiaApiKey && agent === "Kimi-k2.5") {
-          const openai = new OpenAI({ apiKey: nvidiaApiKey, baseURL: nvidiaBaseUrl || 'https://integrate.api.nvidia.com/v1' });
+          const openai = new OpenAI({ apiKey: nvidiaApiKey, baseURL: 'https://integrate.api.nvidia.com/v1' });
           const response = await openai.chat.completions.create({
             model: nvidiaModel || "meta/llama3-70b-instruct",
             messages: [
@@ -72,7 +72,7 @@ async function startServer() {
         } 
         
         if (openRouterApiKey && (agent === "Minimax-m2.7" || agent === "GLM-5" || agent === "Genspark-Prime")) {
-          const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
+          const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: 'https://openrouter.ai/api/v1' });
           const response = await openai.chat.completions.create({
             model: openRouterModel || "meta-llama/llama-3-8b-instruct:free",
             messages: [
