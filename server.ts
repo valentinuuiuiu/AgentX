@@ -1,9 +1,13 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
+import dotenv from "dotenv";
 import YahooFinance from 'yahoo-finance2';
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
+
+// Load .env file
+dotenv.config();
 
 const yahooFinance = new YahooFinance();
 let aiClient: GoogleGenAI | null = null;
@@ -25,7 +29,20 @@ async function startServer() {
 
   // API Routes
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
+    res.json({ status: "ok", service: "Eliza Syndicate — AgentX" });
+  });
+
+  // Eliza Syndicate Agents Registry
+  app.get("/api/agents", (req, res) => {
+    const agents = [
+      { id: "genspark-prime", name: "Genspark-Prime", role: "Super Agent — Holistic Market Analysis", divine: "Tripura Sundarī", element: "Earth", color: "#FF69B4", status: "standing_by" },
+      { id: "kimi-k25", name: "Kimi-k2.5", role: "Equities & S&P 500 Specialist", divine: "Tārā", element: "Water", color: "#4682B4", status: "standing_by" },
+      { id: "minimax-m27", name: "Minimax-m2.7", role: "Cross-Chain Arbitrage", divine: "Chinnamastā", element: "Light", color: "#FFD700", status: "standing_by" },
+      { id: "glm-5", name: "GLM-5", role: "Metals & Forex Specialist", divine: "Bagalāmukhī", element: "Lightning", color: "#9400D3", status: "standing_by" },
+      { id: "cipher-q", name: "Cipher-Q", role: "DevSecOps & Web3 Researcher", divine: "Bhairavī", element: "Air", color: "#000080", status: "scanning" },
+      { id: "helper", name: "Helper Agent", role: "Project & DevOps Coordinator", divine: "Bhuvaneśvarī", element: "Space", color: "#800080", status: "online" },
+    ];
+    res.json(agents);
   });
 
   // AI Agent Chat Endpoint
@@ -33,10 +50,12 @@ async function startServer() {
     try {
       const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel, geminiModel, openAiModel } = req.body;
       
-      const nvidiaApiKey = process.env.NVIDIA_NIM_API_KEY;
-      const openRouterApiKey = process.env.OPEN_ROUTER_API_KEY;
+      const nvidiaApiKey = process.env.NVIDIA_API_KEY;
+      const openRouterApiKey = process.env.OPENROUTER_API_KEY;
       const geminiApiKey = process.env.GEMINI_API_KEY;
       const openAiApiKey = process.env.OPENAI_API_KEY;
+      const ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1';
+      const ollamaApiKey = process.env.OLLAMA_API_KEY || 'ollama';
 
       let systemInstruction = "You are a helpful trading assistant.";
       if (agent === "Genspark-Prime") {
@@ -57,62 +76,106 @@ async function startServer() {
       const prompt = `Current Live Market Data:\n${JSON.stringify(marketContext, null, 2)}\n\nUser Message: ${message}\n\n[SYSTEM ACTING AS ${agent}]: Answer accordingly.`;
 
       try {
-        if (nvidiaApiKey && agent === "Kimi-k2.5") {
-          const openai = new OpenAI({ apiKey: nvidiaApiKey, baseURL: nvidiaBaseUrl || 'https://integrate.api.nvidia.com/v1' });
-          const response = await openai.chat.completions.create({
-            model: nvidiaModel || "meta/llama3-70b-instruct",
-            messages: [
-              { role: "system", content: systemInstruction },
-              { role: "user", content: prompt }
-            ],
-            temperature: 0.2,
-            max_tokens: 1024,
-          });
-          return res.json({ reply: response.choices[0].message.content });
-        } 
-        
-        if (openRouterApiKey && (agent === "Minimax-m2.7" || agent === "GLM-5" || agent === "Genspark-Prime")) {
-          const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
-          const response = await openai.chat.completions.create({
-            model: openRouterModel || "meta-llama/llama-3-8b-instruct:free",
-            messages: [
-              { role: "system", content: systemInstruction },
-              { role: "user", content: prompt }
-            ],
-            temperature: 0.2,
-          });
-          return res.json({ reply: response.choices[0].message.content });
-        }
+        // Provider priority: NVIDIA NIM → Gemini → Ollama (local) → OpenRouter
+        // Each agent has a preferred provider based on UNIFIED_STITCH.md
 
-        if (openAiApiKey) {
-          const openai = new OpenAI({ apiKey: openAiApiKey });
-          const response = await openai.chat.completions.create({
-            model: openAiModel || "gpt-4o-mini",
-            messages: [
-              { role: "system", content: systemInstruction },
-              { role: "user", content: prompt }
-            ],
-            temperature: 0.2,
-          });
-          return res.json({ reply: response.choices[0].message.content });
-        }
+        const agentProviderMap: Record<string, { provider: string, model: string }> = {
+          "Kimi-k2.5":      { provider: "nvidia",  model: "moonshotai/kimi-k2.5" },
+          "Genspark-Prime":  { provider: "nvidia",  model: "qwen/qwen3-8b" },
+          "Minimax-m2.7":    { provider: "ollama",  model: "kimi-k2.6:cloud" },
+          "GLM-5":           { provider: "ollama",  model: "glm-5.1:cloud" },
+          "Cipher-Q":        { provider: "gemini",  model: "gemini-2.5-flash" },
+          "Helper":          { provider: "ollama",  model: "qwen2.5:3b" },
+        };
 
-        if (!geminiApiKey || geminiApiKey === 'MY_GEMINI_API_KEY') {
-          console.warn("Missing or invalid GEMINI_API_KEY. Using simulated node.");
-          throw new Error("Missing GEMINI_API_KEY");
-        }
-        
-        const ai = getAi();
-        const response = await ai.models.generateContent({
-          model: geminiModel || "gemini-2.5-flash",
-          contents: prompt,
-          config: {
-            systemInstruction: systemInstruction,
-            temperature: 0.2
+        const agentConfig = agentProviderMap[agent] || { provider: "ollama", model: "qwen2.5:3b" };
+        let reply: string | null = null;
+
+        // Try preferred provider first
+        if (agentConfig.provider === "nvidia" && nvidiaApiKey) {
+          try {
+            const openai = new OpenAI({ apiKey: nvidiaApiKey, baseURL: nvidiaBaseUrl || 'https://integrate.api.nvidia.com/v1' });
+            const response = await openai.chat.completions.create({
+              model: nvidiaModel || agentConfig.model,
+              messages: [
+                { role: "system", content: systemInstruction },
+                { role: "user", content: prompt }
+              ],
+              temperature: 0.2,
+              max_tokens: 2048,
+            });
+            reply = response.choices[0].message.content;
+          } catch (e: any) {
+            console.warn(`[${agent}] NVIDIA failed: ${e.message}, trying fallback...`);
           }
-        });
-  
-        res.json({ reply: response.text });
+        }
+
+        if (!reply && agentConfig.provider === "gemini" && geminiApiKey) {
+          try {
+            const ai = getAi();
+            const response = await ai.models.generateContent({
+              model: geminiModel || agentConfig.model,
+              contents: prompt,
+              config: { systemInstruction: systemInstruction, temperature: 0.2 }
+            });
+            reply = response.text || null;
+          } catch (e: any) {
+            console.warn(`[${agent}] Gemini failed: ${e.message}, trying fallback...`);
+          }
+        }
+
+        // Ollama fallback (always available locally)
+        if (!reply) {
+          try {
+            const ollamaModel = agentConfig.provider === "ollama" ? agentConfig.model :
+              (agent === "Kimi-k2.5" ? "kimi-k2.6:cloud" :
+               agent === "Genspark-Prime" ? "gpt-oss:120b-cloud" :
+               agent === "Cipher-Q" ? "deepseek-v3.1:671b-cloud" :
+               "qwen2.5:3b");
+            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: ollamaBaseUrl });
+            const response = await openai.chat.completions.create({
+              model: ollamaModel,
+              messages: [
+                { role: "system", content: systemInstruction },
+                { role: "user", content: prompt }
+              ],
+              temperature: 0.2,
+              max_tokens: 2048,
+            });
+            reply = response.choices[0].message.content;
+            if (reply) {
+              console.log(`[${agent}] Responded via Ollama (${ollamaModel})`);
+            }
+          } catch (e: any) {
+            console.warn(`[${agent}] Ollama failed: ${e.message}`);
+          }
+        }
+
+        // Last resort: OpenRouter (may need credits)
+        if (!reply && openRouterApiKey) {
+          try {
+            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
+            const response = await openai.chat.completions.create({
+              model: openRouterModel || "meta-llama/llama-3.1-8b-instruct:free",
+              messages: [
+                { role: "system", content: systemInstruction },
+                { role: "user", content: prompt }
+              ],
+              temperature: 0.2,
+              max_tokens: 1024,
+            });
+            reply = response.choices[0].message.content;
+          } catch (e: any) {
+            console.warn(`[${agent}] OpenRouter failed: ${e.message}`);
+          }
+        }
+
+        if (reply) {
+          return res.json({ reply });
+        }
+
+        // All providers exhausted
+        throw new Error("All LLM providers failed");
       } catch (e: any) {
         console.warn("Chat API fallback triggered:", e.message);
         
@@ -128,7 +191,7 @@ async function startServer() {
         } else if (agent === "GLM-5") {
           fallbackReply += `Gold (GC=F) correlation mapping paused. The fundamental macro-environment signals inflationary pressure, but without the live AI models, I cannot confidently project the EUR/USD pair's next 4H candle. Stay liquid.`;
         } else {
-          fallbackReply += `Terminal operations stabilized. We detected a severed API connection (billing/quota limit reached). The Syndicate is operating in 'Simulation Mode' to prevent uncontrolled drawdown. Please update your Gemini API key in the settings when you are ready to resume live algorithmic trading!`;
+          fallbackReply += `Terminal operations stabilized. We detected a severed API connection (billing/quota limit reached). Eliza Syndicate is operating in 'Simulation Mode' to prevent uncontrolled drawdown. Please update your Gemini API key in the settings when you are ready to resume live algorithmic trading!`;
         }
         
         res.json({ reply: fallbackReply });
@@ -315,7 +378,7 @@ URL: ${topRepo.html_url}
         
         let reportText = "[Error] Gemini API Key missing on VPS. Local simulation only. Could not perform deep neural audit of " + topRepo.name;
         
-        if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY') {
+        if (geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY') {
            try {
              const ai = getAi();
              const modelResult = await ai.models.generateContent({

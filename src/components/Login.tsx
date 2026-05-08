@@ -73,7 +73,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
             </button>
 
             <div className="text-center text-xs text-slate-500 font-mono mt-4 pt-4 border-t border-[#1a1a2e]">
-              By authenticating, you agree to the Syndicate terms of service.
+              By authenticating, you agree to the Eliza Syndicate terms of service.
             </div>
           </div>
         </div>
