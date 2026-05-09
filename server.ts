@@ -5,9 +5,15 @@ import dotenv from "dotenv";
 import YahooFinance from 'yahoo-finance2';
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
+import { createClient } from "redis";
 
 // Load .env file
 dotenv.config();
+
+// Redis client for live agent data
+const redisClient = createClient({ url: process.env.REDIS_URL || "redis://localhost:6379" });
+redisClient.on("error", (err) => console.error("Redis Client Error", err));
+redisClient.connect().catch(() => console.warn("Redis not available, agent data will be from API"));
 
 const yahooFinance = new YahooFinance();
 let aiClient: GoogleGenAI | null = null;
@@ -32,17 +38,71 @@ async function startServer() {
     res.json({ status: "ok", service: "Eliza Syndicate — AgentX" });
   });
 
-  // Eliza Syndicate Agents Registry
-  app.get("/api/agents", (req, res) => {
-    const agents = [
-      { id: "genspark-prime", name: "Genspark-Prime", role: "Super Agent — Holistic Market Analysis", divine: "Tripura Sundarī", element: "Earth", color: "#FF69B4", status: "standing_by" },
-      { id: "kimi-k25", name: "Kimi-k2.5", role: "Equities & S&P 500 Specialist", divine: "Tārā", element: "Water", color: "#4682B4", status: "standing_by" },
-      { id: "minimax-m27", name: "Minimax-m2.7", role: "Cross-Chain Arbitrage", divine: "Chinnamastā", element: "Light", color: "#FFD700", status: "standing_by" },
-      { id: "glm-5", name: "GLM-5", role: "Metals & Forex Specialist", divine: "Bagalāmukhī", element: "Lightning", color: "#9400D3", status: "standing_by" },
-      { id: "cipher-q", name: "Cipher-Q", role: "DevSecOps & Web3 Researcher", divine: "Bhairavī", element: "Air", color: "#000080", status: "scanning" },
-      { id: "helper", name: "Helper Agent", role: "Project & DevOps Coordinator", divine: "Bhuvaneśvarī", element: "Space", color: "#800080", status: "online" },
-    ];
+  // Mahavidyas Agents Registry — 10 Divine Agents
+  const ALL_AGENTS = [
+    { id: "kali",       name: "Kālī",              role: "Risk Guardian",              divine: "The Destroyer of Ignorance",  element: "Fire",      color: "#DC143C", mantra: "ॐ क्लीं कालिकायै नमः",     sacred: "I do not punish. I simply remove what no longer serves." },
+    { id: "tara",       name: "Tārā",              role: "Market Intelligence",        divine: "The Guide Through Darkness",  element: "Water",     color: "#4682B4", mantra: "ॐ ह्रीं तारायै नमः",       sacred: "In the chaos of data, I find the signal." },
+    { id: "sundari",    name: "Tripura Sundarī",   role: "Strategy Engine",            divine: "The Beauty of Creation",       element: "Earth",     color: "#FF69B4", mantra: "ॐ श्रीं ललितायै नमः",    sacred: "Every strategy is a work of art." },
+    { id: "bhuvaneshvari", name: "Bhuvaneśvarī",  role: "Portfolio Manager",          divine: "The Queen of the Universe",    element: "Space",     color: "#800080", mantra: "ॐ ह्रीं भुवनेश्वर्यै नमः", sacred: "I hold the space in which all trades exist." },
+    { id: "bhairavi",   name: "Bhairavī",          role: "Security Auditor",           divine: "The Fierce Protector",         element: "Air",       color: "#000080", mantra: "ॐ भैरव्यै नमः",           sacred: "I am the wall that cannot be breached." },
+    { id: "chinnamasta", name: "Chinnamastā",      role: "DCA Bot",                    divine: "The Self-Sacrificing",         element: "Light",     color: "#FFD700", mantra: "ॐ ह्रीं क्लीं छिन्नमस्तायै नमः", sacred: "I sacrifice the present moment for the future harvest." },
+    { id: "dhumavati",  name: "Dhūmāvatī",         role: "News & Sentiment Analyzer",  divine: "The Widow of Smoke",           element: "Smoke",     color: "#696969", mantra: "ॐ धूं धूमावत्यै नमः",    sacred: "I see through the smoke. I read what is NOT written." },
+    { id: "bagalamukhi", name: "Bagalāmukhī",      role: "Grid Bot",                   divine: "The Paralyzer of Enemies",     element: "Lightning", color: "#9400D3", mantra: "ॐ ह्लीं बगलामुख्यै नमः",  sacred: "I lock the market in its place." },
+    { id: "matangi",    name: "Mātaṅgī",           role: "Whale Tracker",             divine: "The Elephant Power",           element: "Earth",     color: "#8B4513", mantra: "ॐ ह्रीं श्रीं मातङ्ग्यै नमः", sacred: "I track the giants." },
+    { id: "kamala",     name: "Kamalātmikā",       role: "Infinity Grid Bot",          divine: "The Lotus-Born",              element: "Water",     color: "#FF1493", mantra: "ॐ श्रीं ह्रीं क्लीं कमलात्मिकायै नमः", sacred: "From the mud of volatility, I grow." },
+  ];
+
+  // Eliza Syndicate Agents Registry (legacy 6-agent view)
+  app.get("/api/agents", async (req, res) => {
+    const agents = [];
+
+    // Try to enrich with live Redis data
+    for (const agent of ALL_AGENTS) {
+      try {
+        const status = await redisClient.get(`agent:${agent.id}:status`);
+        const lastRun = await redisClient.get(`agent:${agent.id}:last_run`);
+        const signalData = await redisClient.get(`agent:${agent.id}:last_signal`);
+
+        agents.push({
+          ...agent,
+          status: status || "standing_by",
+          last_run: lastRun,
+          last_signal: signalData ? JSON.parse(signalData).analysis?.substring(0, 200) : null,
+        });
+      } catch {
+        agents.push({ ...agent, status: "standing_by" });
+      }
+    }
+
     res.json(agents);
+  });
+
+  // Get single agent's full signal
+  app.get("/api/agents/:id/signal", async (req, res) => {
+    try {
+      const signalData = await redisClient.get(`agent:${req.params.id}:last_signal`);
+      if (signalData) {
+        res.json(JSON.parse(signalData));
+      } else {
+        res.status(404).json({ error: "No signal yet" });
+      }
+    } catch {
+      res.status(500).json({ error: "Redis error" });
+    }
+  });
+
+  // Orchestrator status
+  app.get("/api/orchestrator/status", async (req, res) => {
+    try {
+      const data = await redisClient.get("orchestrator:last_cycle");
+      if (data) {
+        res.json(JSON.parse(data));
+      } else {
+        res.json({ status: "not_running", agents: {} });
+      }
+    } catch {
+      res.json({ status: "not_running", agents: {} });
+    }
   });
 
   // AI Agent Chat Endpoint
@@ -76,27 +136,25 @@ async function startServer() {
       const prompt = `Current Live Market Data:\n${JSON.stringify(marketContext, null, 2)}\n\nUser Message: ${message}\n\n[SYSTEM ACTING AS ${agent}]: Answer accordingly.`;
 
       try {
-        // Provider priority: NVIDIA NIM → Gemini → Ollama (local) → OpenRouter
-        // Each agent has a preferred provider based on UNIFIED_STITCH.md
-
-        const agentProviderMap: Record<string, { provider: string, model: string }> = {
-          "Kimi-k2.5":      { provider: "nvidia",  model: "moonshotai/kimi-k2.5" },
-          "Genspark-Prime":  { provider: "nvidia",  model: "qwen/qwen3-8b" },
-          "Minimax-m2.7":    { provider: "ollama",  model: "kimi-k2.6:cloud" },
-          "GLM-5":           { provider: "ollama",  model: "glm-5.1:cloud" },
-          "Cipher-Q":        { provider: "gemini",  model: "gemini-2.5-flash" },
-          "Helper":          { provider: "ollama",  model: "qwen2.5:3b" },
+        // Provider priority: OpenRouter (free models) → Gemini → Ollama (local)
+        const agentModelMap: Record<string, string> = {
+          "Genspark-Prime":  "qwen/qwen3-8b:free",
+          "Kimi-k2.5":      "moonshotai/kimi-k2.6:free",
+          "Minimax-m2.7":    "minimax-text-01:free",
+          "GLM-5":           "z-ai/glm-4.7:free",
+          "Cipher-Q":        "google/gemini-2.5-flash",
+          "Helper":          "qwen/qwen2.5-7b-instruct:free",
         };
 
-        const agentConfig = agentProviderMap[agent] || { provider: "ollama", model: "qwen2.5:3b" };
+        const openRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
         let reply: string | null = null;
 
-        // Try preferred provider first
-        if (agentConfig.provider === "nvidia" && nvidiaApiKey) {
+        // 1. Try OpenRouter free models first
+        if (openRouterApiKey) {
           try {
-            const openai = new OpenAI({ apiKey: nvidiaApiKey, baseURL: nvidiaBaseUrl || 'https://integrate.api.nvidia.com/v1' });
+            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
             const response = await openai.chat.completions.create({
-              model: nvidiaModel || agentConfig.model,
+              model: openRouterModel,
               messages: [
                 { role: "system", content: systemInstruction },
                 { role: "user", content: prompt }
@@ -105,36 +163,34 @@ async function startServer() {
               max_tokens: 2048,
             });
             reply = response.choices[0].message.content;
+            if (reply) console.log(`[${agent}] Responded via OpenRouter (${openRouterModel})`);
           } catch (e: any) {
-            console.warn(`[${agent}] NVIDIA failed: ${e.message}, trying fallback...`);
+            console.warn(`[${agent}] OpenRouter failed: ${e.message}`);
           }
         }
 
-        if (!reply && agentConfig.provider === "gemini" && geminiApiKey) {
+        // 2. Fallback: Gemini
+        if (!reply && geminiApiKey) {
           try {
             const ai = getAi();
             const response = await ai.models.generateContent({
-              model: geminiModel || agentConfig.model,
+              model: "gemini-2.5-flash",
               contents: prompt,
               config: { systemInstruction: systemInstruction, temperature: 0.2 }
             });
             reply = response.text || null;
+            if (reply) console.log(`[${agent}] Responded via Gemini`);
           } catch (e: any) {
-            console.warn(`[${agent}] Gemini failed: ${e.message}, trying fallback...`);
+            console.warn(`[${agent}] Gemini failed: ${e.message}`);
           }
         }
 
-        // Ollama fallback (always available locally)
+        // 3. Fallback: Ollama local
         if (!reply) {
           try {
-            const ollamaModel = agentConfig.provider === "ollama" ? agentConfig.model :
-              (agent === "Kimi-k2.5" ? "kimi-k2.6:cloud" :
-               agent === "Genspark-Prime" ? "gpt-oss:120b-cloud" :
-               agent === "Cipher-Q" ? "deepseek-v3.1:671b-cloud" :
-               "qwen2.5:3b");
             const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: ollamaBaseUrl });
             const response = await openai.chat.completions.create({
-              model: ollamaModel,
+              model: "qwen2.5:3b",
               messages: [
                 { role: "system", content: systemInstruction },
                 { role: "user", content: prompt }
@@ -143,30 +199,9 @@ async function startServer() {
               max_tokens: 2048,
             });
             reply = response.choices[0].message.content;
-            if (reply) {
-              console.log(`[${agent}] Responded via Ollama (${ollamaModel})`);
-            }
+            if (reply) console.log(`[${agent}] Responded via Ollama (qwen2.5:3b)`);
           } catch (e: any) {
             console.warn(`[${agent}] Ollama failed: ${e.message}`);
-          }
-        }
-
-        // Last resort: OpenRouter (may need credits)
-        if (!reply && openRouterApiKey) {
-          try {
-            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
-            const response = await openai.chat.completions.create({
-              model: openRouterModel || "meta-llama/llama-3.1-8b-instruct:free",
-              messages: [
-                { role: "system", content: systemInstruction },
-                { role: "user", content: prompt }
-              ],
-              temperature: 0.2,
-              max_tokens: 1024,
-            });
-            reply = response.choices[0].message.content;
-          } catch (e: any) {
-            console.warn(`[${agent}] OpenRouter failed: ${e.message}`);
           }
         }
 
@@ -328,12 +363,18 @@ async function startServer() {
         marketChartCache[range] = { data: chartData, lastFetch: now };
       }
 
-      // Mock real-time arbitrage opportunities for Minimax-m2.7
-      const arbitrageOpps = [
-        { id: 1, asset: 'ETH', route: 'Uniswap (Ethereum) -> SushiSwap (Arbitrum)', spread: '1.2%', profit: '+$45.20', time: 'Just now' },
-        { id: 2, asset: 'USDC', route: 'Curve (Optimism) -> Aave (Polygon)', spread: '0.8%', profit: '+$12.50', time: '2 mins ago' },
-        { id: 3, asset: 'WBTC', route: 'Binance -> GMX (Arbitrum)', spread: '2.1%', profit: '+$185.00', time: '5 mins ago' }
-      ];
+      // Live arbitrage from Rehoboam API
+      let arbitrageOpps: any[] = [];
+      try {
+        const rehoboamArb = await fetch("http://localhost:5002/api/market/prices").then(r => r.json()).catch(() => null);
+        if (rehoboamArb?.prices) {
+          const p = rehoboamArb.prices;
+          if (p.BTC && p.ETH) {
+            const spread = ((parseFloat(p.ETH) / parseFloat(p.BTC)) * 100 - 100).toFixed(2);
+            arbitrageOpps.push({ id: 1, asset: 'ETH/BTC', route: 'Binance Spot', spread: `${spread}%`, price_eth: p.ETH, price_btc: p.BTC, time: 'Live' });
+          }
+        }
+      } catch { /* use empty */ }
 
       res.json({
         quotes: quotesData,
