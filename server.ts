@@ -108,7 +108,7 @@ async function startServer() {
   // AI Agent Chat Endpoint
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel, geminiModel, openAiModel } = req.body;
+      const { message, agent, marketContext, nvidiaModel, openRouterModel, geminiModel, openAiModel } = req.body;
       
       const nvidiaApiKey = process.env.NVIDIA_API_KEY;
       const openRouterApiKey = process.env.OPENROUTER_API_KEY;
@@ -146,15 +146,15 @@ async function startServer() {
           "Helper":          "qwen/qwen2.5-7b-instruct:free",
         };
 
-        const openRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
+        const finalOpenRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
         let reply: string | null = null;
 
         // 1. Try OpenRouter free models first
         if (openRouterApiKey) {
           try {
-            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
+            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: 'https://openrouter.ai/api/v1' });
             const response = await openai.chat.completions.create({
-              model: openRouterModel,
+              model: finalOpenRouterModel,
               messages: [
                 { role: "system", content: systemInstruction },
                 { role: "user", content: prompt }
@@ -163,7 +163,7 @@ async function startServer() {
               max_tokens: 2048,
             });
             reply = response.choices[0].message.content;
-            if (reply) console.log(`[${agent}] Responded via OpenRouter (${openRouterModel})`);
+            if (reply) console.log(`[${agent}] Responded via OpenRouter (${finalOpenRouterModel})`);
           } catch (e: any) {
             console.warn(`[${agent}] OpenRouter failed: ${e.message}`);
           }
@@ -417,9 +417,10 @@ Stars: ${topRepo.stargazers_count}
 URL: ${topRepo.html_url}
 `;
         
+        const localGeminiApiKey = process.env.GEMINI_API_KEY;
         let reportText = "[Error] Gemini API Key missing on VPS. Local simulation only. Could not perform deep neural audit of " + topRepo.name;
         
-        if (geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY') {
+        if (localGeminiApiKey && localGeminiApiKey !== 'MY_GEMINI_API_KEY') {
            try {
              const ai = getAi();
              const modelResult = await ai.models.generateContent({
