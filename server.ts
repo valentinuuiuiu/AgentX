@@ -67,7 +67,7 @@ async function startServer() {
           ...agent,
           status: status || "standing_by",
           last_run: lastRun,
-          last_signal: signalData ? JSON.parse(signalData).analysis?.substring(0, 200) : null,
+          last_signal: signalData ? JSON.parse(signalData as string).analysis?.substring(0, 200) : null,
         });
       } catch {
         agents.push({ ...agent, status: "standing_by" });
@@ -82,7 +82,7 @@ async function startServer() {
     try {
       const signalData = await redisClient.get(`agent:${req.params.id}:last_signal`);
       if (signalData) {
-        res.json(JSON.parse(signalData));
+        res.json(JSON.parse(signalData as string));
       } else {
         res.status(404).json({ error: "No signal yet" });
       }
@@ -96,7 +96,7 @@ async function startServer() {
     try {
       const data = await redisClient.get("orchestrator:last_cycle");
       if (data) {
-        res.json(JSON.parse(data));
+        res.json(JSON.parse(data as string));
       } else {
         res.json({ status: "not_running", agents: {} });
       }
@@ -146,15 +146,15 @@ async function startServer() {
           "Helper":          "qwen/qwen2.5-7b-instruct:free",
         };
 
-        const openRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
+        const actualOpenRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
         let reply: string | null = null;
 
         // 1. Try OpenRouter free models first
         if (openRouterApiKey) {
           try {
-            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
+            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: 'https://openrouter.ai/api/v1' });
             const response = await openai.chat.completions.create({
-              model: openRouterModel,
+              model: actualOpenRouterModel,
               messages: [
                 { role: "system", content: systemInstruction },
                 { role: "user", content: prompt }
@@ -163,7 +163,7 @@ async function startServer() {
               max_tokens: 2048,
             });
             reply = response.choices[0].message.content;
-            if (reply) console.log(`[${agent}] Responded via OpenRouter (${openRouterModel})`);
+            if (reply) console.log(`[${agent}] Responded via OpenRouter (${actualOpenRouterModel})`);
           } catch (e: any) {
             console.warn(`[${agent}] OpenRouter failed: ${e.message}`);
           }
@@ -418,8 +418,9 @@ URL: ${topRepo.html_url}
 `;
         
         let reportText = "[Error] Gemini API Key missing on VPS. Local simulation only. Could not perform deep neural audit of " + topRepo.name;
+        const processGeminiKey = process.env.GEMINI_API_KEY;
         
-        if (geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY') {
+        if (processGeminiKey && processGeminiKey !== 'MY_GEMINI_API_KEY') {
            try {
              const ai = getAi();
              const modelResult = await ai.models.generateContent({
