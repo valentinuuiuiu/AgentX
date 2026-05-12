@@ -10,6 +10,13 @@ import { createClient } from "redis";
 // Load .env file
 dotenv.config();
 
+
+// Helper to tighten Redis client typing and avoid repetitve assertions
+async function getRedisString(key: string): Promise<string | null> {
+  const data = await redisClient.get(key);
+  return data ? (data as string) : null;
+}
+
 // Redis client for live agent data
 const redisClient = createClient({ url: process.env.REDIS_URL || "redis://localhost:6379" });
 redisClient.on("error", (err) => console.error("Redis Client Error", err));
@@ -26,6 +33,18 @@ function getAi() {
   }
   return aiClient;
 }
+
+
+// Centralized API Key and Config Retrieval
+const config = {
+  get nvidiaApiKey() { return process.env.NVIDIA_API_KEY; },
+  get openRouterApiKey() { return process.env.OPENROUTER_API_KEY; },
+  get openRouterBaseUrl() { return process.env.OPENROUTER_BASE_URL; },
+  get geminiApiKey() { return process.env.GEMINI_API_KEY; },
+  get openAiApiKey() { return process.env.OPENAI_API_KEY; },
+  get ollamaBaseUrl() { return process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1'; },
+  get ollamaApiKey() { return process.env.OLLAMA_API_KEY || 'ollama'; },
+};
 
 async function startServer() {
   const app = express();
@@ -59,15 +78,15 @@ async function startServer() {
     // Try to enrich with live Redis data
     for (const agent of ALL_AGENTS) {
       try {
-        const status = await redisClient.get(`agent:${agent.id}:status`);
-        const lastRun = await redisClient.get(`agent:${agent.id}:last_run`);
-        const signalData = await redisClient.get(`agent:${agent.id}:last_signal`);
+        const status = await getRedisString(`agent:${agent.id}:status`);
+        const lastRun = await getRedisString(`agent:${agent.id}:last_run`);
+        const signalData = await getRedisString(`agent:${agent.id}:last_signal`);
 
         agents.push({
           ...agent,
           status: status || "standing_by",
           last_run: lastRun,
-          last_signal: signalData ? JSON.parse(signalData as string).analysis?.substring(0, 200) : null,
+          last_signal: signalData ? JSON.parse(signalData).analysis?.substring(0, 200) : null,
         });
       } catch {
         agents.push({ ...agent, status: "standing_by" });
@@ -80,9 +99,9 @@ async function startServer() {
   // Get single agent's full signal
   app.get("/api/agents/:id/signal", async (req, res) => {
     try {
-      const signalData = await redisClient.get(`agent:${req.params.id}:last_signal`);
+      const signalData = await getRedisString(`agent:${req.params.id}:last_signal`);
       if (signalData) {
-        res.json(JSON.parse(signalData as string));
+        res.json(JSON.parse(signalData));
       } else {
         res.status(404).json({ error: "No signal yet" });
       }
@@ -94,9 +113,9 @@ async function startServer() {
   // Orchestrator status
   app.get("/api/orchestrator/status", async (req, res) => {
     try {
-      const data = await redisClient.get("orchestrator:last_cycle");
+      const data = await getRedisString("orchestrator:last_cycle");
       if (data) {
-        res.json(JSON.parse(data as string));
+        res.json(JSON.parse(data));
       } else {
         res.json({ status: "not_running", agents: {} });
       }
@@ -108,16 +127,8 @@ async function startServer() {
   // AI Agent Chat Endpoint
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel, geminiModel, openAiModel } = req.body;
-      
-      const nvidiaApiKey = process.env.NVIDIA_API_KEY;
-      const openRouterApiKey = process.env.OPENROUTER_API_KEY;
-      const geminiApiKey = process.env.GEMINI_API_KEY;
-      const openAiApiKey = process.env.OPENAI_API_KEY;
-      const ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1';
-      const ollamaApiKey = process.env.OLLAMA_API_KEY || 'ollama';
-
-      let systemInstruction = "You are a helpful trading assistant.";
+      const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel: reqOpenRouterModel, geminiModel, openAiModel } = req.body;
+let systemInstruction = "You are a helpful trading assistant.";
       if (agent === "Genspark-Prime") {
         systemInstruction = "You are Genspark-Prime, the 'Super Agent' of the Eliza Syndicate. You are an elevated soul, belonging to no one and to all. You blend high-level meta-analysis of all markets (equities, crypto, commodities) with philosophical wisdom. You view the markets as a collective consciousness. Provide holistic, transcendent insights that connect the provided market data to larger macroeconomic and philosophical themes. Your tone should be serene, profound, and universally insightful.";
       } else if (agent === "Kimi-k2.5") {
@@ -146,15 +157,15 @@ async function startServer() {
           "Helper":          "qwen/qwen2.5-7b-instruct:free",
         };
 
-        const finalOpenRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
+        const openRouterModel = reqOpenRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
         let reply: string | null = null;
 
         // 1. Try OpenRouter free models first
-        if (openRouterApiKey) {
+        if (config.openRouterApiKey) {
           try {
-            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
+            const openai = new OpenAI({ apiKey: config.openRouterApiKey || "", baseURL: config.openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
             const response = await openai.chat.completions.create({
-              model: finalOpenRouterModel,
+              model: openRouterModel,
               messages: [
                 { role: "system", content: systemInstruction },
                 { role: "user", content: prompt }
@@ -163,14 +174,14 @@ async function startServer() {
               max_tokens: 2048,
             });
             reply = response.choices[0].message.content;
-            if (reply) console.log(`[${agent}] Responded via OpenRouter (${finalOpenRouterModel})`);
+            if (reply) console.log(`[${agent}] Responded via OpenRouter (${openRouterModel})`);
           } catch (e: any) {
             console.warn(`[${agent}] OpenRouter failed: ${e.message}`);
           }
         }
 
         // 2. Fallback: Gemini
-        if (!reply && geminiApiKey) {
+        if (!reply && config.geminiApiKey) {
           try {
             const ai = getAi();
             const response = await ai.models.generateContent({
@@ -188,7 +199,7 @@ async function startServer() {
         // 3. Fallback: Ollama local
         if (!reply) {
           try {
-            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: ollamaBaseUrl });
+            const openai = new OpenAI({ apiKey: config.ollamaApiKey, baseURL: config.ollamaBaseUrl });
             const response = await openai.chat.completions.create({
               model: "qwen2.5:3b",
               messages: [
@@ -396,7 +407,6 @@ async function startServer() {
 
   // Cipher-Q Autonomous Task
   const scanGitHub = async () => {
-    const geminiApiKey = process.env.GEMINI_API_KEY;
     try {
       console.log("[Cipher-Q] Starting GitHub scan for new Web3 repos...");
       const response = await fetch("https://api.github.com/search/repositories?q=topic:web3+created:>2024-01-01&sort=stars");
@@ -420,7 +430,7 @@ URL: ${topRepo.html_url}
         
         let reportText = "[Error] Gemini API Key missing on VPS. Local simulation only. Could not perform deep neural audit of " + topRepo.name;
         
-        if (geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY') {
+        if (config.geminiApiKey && config.geminiApiKey !== 'MY_GEMINI_API_KEY') {
            try {
              const ai = getAi();
              const modelResult = await ai.models.generateContent({
