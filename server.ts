@@ -67,7 +67,7 @@ async function startServer() {
           ...agent,
           status: status || "standing_by",
           last_run: lastRun,
-          last_signal: signalData ? JSON.parse(signalData).analysis?.substring(0, 200) : null,
+          last_signal: signalData ? JSON.parse(signalData as string).analysis?.substring(0, 200) : null,
         });
       } catch {
         agents.push({ ...agent, status: "standing_by" });
@@ -82,7 +82,7 @@ async function startServer() {
     try {
       const signalData = await redisClient.get(`agent:${req.params.id}:last_signal`);
       if (signalData) {
-        res.json(JSON.parse(signalData));
+        res.json(JSON.parse(signalData as string));
       } else {
         res.status(404).json({ error: "No signal yet" });
       }
@@ -96,7 +96,7 @@ async function startServer() {
     try {
       const data = await redisClient.get("orchestrator:last_cycle");
       if (data) {
-        res.json(JSON.parse(data));
+        res.json(JSON.parse(data as string));
       } else {
         res.json({ status: "not_running", agents: {} });
       }
@@ -146,7 +146,7 @@ async function startServer() {
           "Helper":          "qwen/qwen2.5-7b-instruct:free",
         };
 
-        const openRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
+        const finalOpenRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
         let reply: string | null = null;
 
         // 1. Try OpenRouter free models first
@@ -154,7 +154,7 @@ async function startServer() {
           try {
             const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
             const response = await openai.chat.completions.create({
-              model: openRouterModel,
+              model: finalOpenRouterModel,
               messages: [
                 { role: "system", content: systemInstruction },
                 { role: "user", content: prompt }
@@ -163,7 +163,7 @@ async function startServer() {
               max_tokens: 2048,
             });
             reply = response.choices[0].message.content;
-            if (reply) console.log(`[${agent}] Responded via OpenRouter (${openRouterModel})`);
+            if (reply) console.log(`[${agent}] Responded via OpenRouter (${finalOpenRouterModel})`);
           } catch (e: any) {
             console.warn(`[${agent}] OpenRouter failed: ${e.message}`);
           }
@@ -396,6 +396,7 @@ async function startServer() {
 
   // Cipher-Q Autonomous Task
   const scanGitHub = async () => {
+    const geminiApiKey = process.env.GEMINI_API_KEY;
     try {
       console.log("[Cipher-Q] Starting GitHub scan for new Web3 repos...");
       const response = await fetch("https://api.github.com/search/repositories?q=topic:web3+created:>2024-01-01&sort=stars");
