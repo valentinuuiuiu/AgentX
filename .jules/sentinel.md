@@ -1,3 +1,8 @@
+## 2024-05-05 - Fix SSRF and Credential Leak in server.ts
+**Vulnerability:** The `/api/chat` endpoint extracted `openRouterBaseUrl` from the user-controlled `req.body` and used it as the `baseURL` for the `OpenAI` client SDK (used for OpenRouter). This allowed an attacker to intercept the `openRouterApiKey` by passing their own malicious server URL, while also acting as an SSRF vector.
+**Learning:** Never trust user-supplied base URLs when instantiating API clients that authenticate with server-side secrets. Even if a fallback URL exists, passing user input directly to sensitive configuration parameters like `baseURL` opens up credential leak and SSRF attacks.
+**Prevention:** Always hardcode trusted base URLs for SDKs or API clients, or restrict them to a strict internal allowlist when multiple trusted endpoints are required.
+
 ## 2025-05-05 - target="_blank" without rel="noopener noreferrer"
 **Vulnerability:** A `target="_blank"` anchor link was missing the `rel="noopener noreferrer"` attribute in `src/components/Team.tsx`.
 **Learning:** This exposes the application to a "reverse tabnabbing" attack where the newly opened tab can gain a reference to the `window.opener` object of the original page and potentially redirect it to a malicious site.
