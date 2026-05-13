@@ -67,7 +67,7 @@ async function startServer() {
           ...agent,
           status: status || "standing_by",
           last_run: lastRun,
-          last_signal: signalData ? JSON.parse(signalData).analysis?.substring(0, 200) : null,
+          last_signal: signalData ? JSON.parse(signalData as string).analysis?.substring(0, 200) : null,
         });
       } catch {
         agents.push({ ...agent, status: "standing_by" });
@@ -82,7 +82,7 @@ async function startServer() {
     try {
       const signalData = await redisClient.get(`agent:${req.params.id}:last_signal`);
       if (signalData) {
-        res.json(JSON.parse(signalData));
+        res.json(JSON.parse(signalData as string));
       } else {
         res.status(404).json({ error: "No signal yet" });
       }
@@ -96,7 +96,7 @@ async function startServer() {
     try {
       const data = await redisClient.get("orchestrator:last_cycle");
       if (data) {
-        res.json(JSON.parse(data));
+        res.json(JSON.parse(data as string));
       } else {
         res.json({ status: "not_running", agents: {} });
       }
@@ -110,7 +110,7 @@ async function startServer() {
     try {
       const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel, geminiModel, openAiModel } = req.body;
       
-      const nvidiaApiKey = process.env.NVIDIA_API_KEY;
+      const nvidiaApiKey = process.env.NVIDIA_NIM_API_KEY;
       const openRouterApiKey = process.env.OPENROUTER_API_KEY;
       const geminiApiKey = process.env.GEMINI_API_KEY;
       const openAiApiKey = process.env.OPENAI_API_KEY;
@@ -146,15 +146,15 @@ async function startServer() {
           "Helper":          "qwen/qwen2.5-7b-instruct:free",
         };
 
-        const openRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
+        const resolvedOpenRouterModel = openRouterModel || agentModelMap[agent] || "qwen/qwen2.5-7b-instruct:free";
         let reply: string | null = null;
 
         // 1. Try OpenRouter free models first
         if (openRouterApiKey) {
           try {
-            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: openRouterBaseUrl || 'https://openrouter.ai/api/v1' });
+            const openai = new OpenAI({ apiKey: openRouterApiKey, baseURL: 'https://openrouter.ai/api/v1' });
             const response = await openai.chat.completions.create({
-              model: openRouterModel,
+              model: resolvedOpenRouterModel,
               messages: [
                 { role: "system", content: systemInstruction },
                 { role: "user", content: prompt }
@@ -163,7 +163,7 @@ async function startServer() {
               max_tokens: 2048,
             });
             reply = response.choices[0].message.content;
-            if (reply) console.log(`[${agent}] Responded via OpenRouter (${openRouterModel})`);
+            if (reply) console.log(`[${agent}] Responded via OpenRouter (${resolvedOpenRouterModel})`);
           } catch (e: any) {
             console.warn(`[${agent}] OpenRouter failed: ${e.message}`);
           }
@@ -188,7 +188,7 @@ async function startServer() {
         // 3. Fallback: Ollama local
         if (!reply) {
           try {
-            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: ollamaBaseUrl });
+            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: 'http://localhost:11434/v1' });
             const response = await openai.chat.completions.create({
               model: "qwen2.5:3b",
               messages: [
@@ -419,7 +419,7 @@ URL: ${topRepo.html_url}
         
         let reportText = "[Error] Gemini API Key missing on VPS. Local simulation only. Could not perform deep neural audit of " + topRepo.name;
         
-        if (geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY') {
+        if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY') {
            try {
              const ai = getAi();
              const modelResult = await ai.models.generateContent({
