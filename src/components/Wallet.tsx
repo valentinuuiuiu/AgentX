@@ -37,8 +37,10 @@ export function WalletView() {
       let rawProvider = null;
       if (providerName === 'MetaMask' && (window as any).ethereum) {
         rawProvider = (window as any).ethereum;
+        // In some mock environments or alternative wallets, isMetaMask might be undefined,
+        // but it still supports the EIP-1193 standard. We log a warning instead of failing.
         if (!rawProvider.isMetaMask) {
-          throw new Error('MetaMask is not installed');
+          console.warn('MetaMask flag is missing on provider, but proceeding anyway.');
         }
       } else if (providerName === 'Talisman' && (window as any).talismanEth) {
         rawProvider = (window as any).talismanEth;
@@ -53,7 +55,7 @@ export function WalletView() {
 
       try {
         const balanceWei = await provider.getBalance(address);
-        setBalance(formatEther(balanceWei));
+        setBalance(formatEther(balanceWei || 0n)); // Additional fallback for mocked providers
       } catch (e) {
         console.warn('Failed to fetch actual balance, defaulting to 0.00', e);
         setBalance('0.00');
@@ -195,7 +197,7 @@ export function WalletView() {
                   </span>
                 </div>
                 <div className="text-5xl font-bold text-white mb-8">
-                  {walletType === 'CEX' || !walletType ? '$0.00' : `${parseFloat(balance).toFixed(4)} ETH`}
+                  {walletType === 'CEX' || !walletType ? '$0.00' : `${(isNaN(parseFloat(balance)) ? 0 : parseFloat(balance)).toFixed(4)} ETH`}
                 </div>
                 
                 <div className="flex gap-4">
