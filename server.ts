@@ -188,7 +188,7 @@ async function startServer() {
         // 3. Fallback: Ollama local
         if (!reply) {
           try {
-            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1' });
+            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: 'http://localhost:11434/v1' });
             const response = await openai.chat.completions.create({
               model: "qwen2.5:3b",
               messages: [
