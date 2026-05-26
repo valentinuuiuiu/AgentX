@@ -23,6 +23,13 @@ export function WalletView() {
     { id: 'tx-11029c', agent: 'GLM-5', asset: 'GC=F (Gold)', type: 'Market Sell', amount: '2 Contracts', price: '$2,340.50', status: 'Confirmed', time: '1 hour ago' },
   ]);
 
+  const formatDisplayBalance = () => {
+    if (walletType === 'CEX' || !walletType) return '$0.00';
+    const parsedBalance = parseFloat(balance);
+    if (isNaN(parsedBalance)) return '0.0000 ETH';
+    return `${parsedBalance.toFixed(4)} ETH`;
+  };
+
   const handleConnect = (e: React.FormEvent) => {
     e.preventDefault();
     if (apiKey && apiSecret) {
@@ -195,7 +202,7 @@ export function WalletView() {
                   </span>
                 </div>
                 <div className="text-5xl font-bold text-white mb-8">
-                  {walletType === 'CEX' || !walletType ? '$0.00' : isNaN(parseFloat(balance)) ? '0.0000 ETH' : `${parseFloat(balance).toFixed(4)} ETH`}
+                  {formatDisplayBalance()}
                 </div>
                 
                 <div className="flex gap-4">
