@@ -38,7 +38,7 @@ export function WalletView() {
       if (providerName === 'MetaMask' && (window as any).ethereum) {
         rawProvider = (window as any).ethereum;
         if (!rawProvider.isMetaMask) {
-          throw new Error('MetaMask is not installed');
+          console.warn('Warning: Web3 provider found, but it may not be MetaMask (isMetaMask flag missing).');
         }
       } else if (providerName === 'Talisman' && (window as any).talismanEth) {
         rawProvider = (window as any).talismanEth;
@@ -195,7 +195,7 @@ export function WalletView() {
                   </span>
                 </div>
                 <div className="text-5xl font-bold text-white mb-8">
-                  {walletType === 'CEX' || !walletType ? '$0.00' : `${parseFloat(balance).toFixed(4)} ETH`}
+                  {walletType === 'CEX' || !walletType ? '$0.00' : `${!isNaN(parseFloat(balance)) ? parseFloat(balance).toFixed(4) : '0.0000'} ETH`}
                 </div>
                 
                 <div className="flex gap-4">
