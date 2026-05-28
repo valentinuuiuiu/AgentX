@@ -117,6 +117,8 @@ export function WalletView() {
     }, 3000 + Math.random() * 2000); // Fills after 3-5 seconds
   };
 
+  const parsedBalance = Number(balance);
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="bg-gradient-to-r from-blue-900/50 to-emerald-900/50 border border-slate-800 rounded-xl relative overflow-hidden p-8">
@@ -195,7 +197,7 @@ export function WalletView() {
                   </span>
                 </div>
                 <div className="text-5xl font-bold text-white mb-8">
-                  {walletType === 'CEX' || !walletType ? '$0.00' : `${isNaN(parseFloat(balance)) ? '0.0000' : parseFloat(balance).toFixed(4)} ETH`}
+                  {walletType === 'CEX' || !walletType ? '$0.00' : `${isNaN(parsedBalance) ? '0.0000' : parsedBalance.toFixed(4)} ETH`}
                 </div>
                 
                 <div className="flex gap-4">
