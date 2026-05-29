@@ -1,4 +1,6 @@
 import express from "express";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import dotenv from "dotenv";
@@ -32,6 +34,20 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+
+  // Security Headers
+  app.use(helmet({
+    contentSecurityPolicy: false, // Disabling CSP for now to prevent breaking frontend assets
+  }));
+
+  // Rate Limiting
+  const chatRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 50, // Limit each IP to 50 requests per `window` (here, per 15 minutes)
+    message: { error: "Too many chat requests from this IP, please try again after 15 minutes." },
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  });
 
   // API Routes
   app.get("/api/health", (req, res) => {
@@ -106,7 +122,7 @@ async function startServer() {
   });
 
   // AI Agent Chat Endpoint
-  app.post("/api/chat", async (req, res) => {
+  app.post("/api/chat", chatRateLimit, async (req, res) => {
     try {
       const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel, geminiModel, openAiModel } = req.body;
       
