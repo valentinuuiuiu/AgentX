@@ -7,7 +7,11 @@ import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 import { createClient } from "redis";
 import helmet from "helmet";
+<<<<<<< HEAD
 import rateLimit from "express-rate-limit";
+=======
+import { rateLimit } from "express-rate-limit";
+>>>>>>> origin/main
 
 // Load .env file
 dotenv.config();
@@ -33,6 +37,7 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+<<<<<<< HEAD
   app.set("trust proxy", 1);
   app.use(helmet({
     contentSecurityPolicy: false,
@@ -44,9 +49,31 @@ async function startServer() {
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   });
+=======
+  // Security: Trust proxy for accurate rate limiting behind a reverse proxy
+  // Only enable if actually behind a reverse proxy (e.g., Nginx, Heroku, Google Studio)
+  if (process.env.NODE_ENV === "production") {
+    app.set('trust proxy', 1);
+  }
+
+  // Security: Add security headers with CSP disabled so Vite dev/build doesn't break
+  app.use(helmet({ contentSecurityPolicy: false }));
+>>>>>>> origin/main
 
   app.use(express.json());
   app.use("/api/", apiLimiter);
+
+  // Security: Limit API requests to prevent DoS and LLM quota exhaustion
+  const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 100, // Limit each IP to 100 requests per `window`
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    message: { error: "Too many requests, please try again later." }
+  });
+
+  // Apply the rate limiting middleware to all /api/ requests
+  app.use('/api/', apiLimiter);
 
   // API Routes
   app.get("/api/health", (req, res) => {
