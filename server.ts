@@ -6,6 +6,8 @@ import YahooFinance from 'yahoo-finance2';
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 import { createClient } from "redis";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 // Load .env file
 dotenv.config();
@@ -31,7 +33,20 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  app.set("trust proxy", 1);
+  app.use(helmet({
+    contentSecurityPolicy: false,
+  }));
+
+  const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  });
+
   app.use(express.json());
+  app.use("/api/", apiLimiter);
 
   // API Routes
   app.get("/api/health", (req, res) => {
@@ -105,8 +120,15 @@ async function startServer() {
     }
   });
 
+  const chatLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 50,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
   // AI Agent Chat Endpoint
-  app.post("/api/chat", async (req, res) => {
+  app.post("/api/chat", chatLimiter, async (req, res) => {
     try {
       const { message, agent, marketContext, nvidiaBaseUrl, nvidiaModel, openRouterBaseUrl, openRouterModel, geminiModel, openAiModel } = req.body;
       
