@@ -188,7 +188,11 @@ async function startServer() {
         // 3. Fallback: Ollama local
         if (!reply) {
           try {
-            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: 'http://localhost:11434/v1' });
+            const ollamaBaseUrl = process.env.OLLAMA_BASE_URL;
+            const isValidOllamaUrl = ollamaBaseUrl && (ollamaBaseUrl.startsWith('http://localhost:') || ollamaBaseUrl.startsWith('http://127.0.0.1:'));
+            const safeBaseUrl = isValidOllamaUrl ? ollamaBaseUrl : 'http://localhost:11434/v1';
+
+            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: safeBaseUrl });
             const response = await openai.chat.completions.create({
               model: "qwen2.5:3b",
               messages: [
