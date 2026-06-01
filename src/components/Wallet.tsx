@@ -53,6 +53,9 @@ export function WalletView() {
 
       try {
         const balanceWei = await provider.getBalance(address);
+        if (balanceWei === undefined || balanceWei === null) {
+          throw new Error("Invalid balance received");
+        }
         setBalance(formatEther(balanceWei));
       } catch (e) {
         console.warn('Failed to fetch actual balance, defaulting to 0.00', e);

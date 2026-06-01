@@ -35,9 +35,7 @@ async function startServer() {
 
   // Security: Trust proxy for accurate rate limiting behind a reverse proxy
   // Only enable if actually behind a reverse proxy (e.g., Nginx, Heroku, Google Studio)
-  if (process.env.NODE_ENV === "production") {
-    app.set('trust proxy', 1);
-  }
+  app.set('trust proxy', 1);
 
   // Security: Add security headers with CSP disabled so Vite dev/build doesn't break
   app.use(helmet({ contentSecurityPolicy: false }));
