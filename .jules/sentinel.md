@@ -2,3 +2,8 @@
 **Vulnerability:** The Express server (`server.ts`) exposed several `/api/` endpoints (including `/api/chat` which calls external LLMs like Gemini and OpenRouter) without any rate limiting. It also lacked fundamental security headers.
 **Learning:** Endpoints that call external LLM APIs are extremely vulnerable to DoS and quota exhaustion attacks if left unprotected. Rate limiters are absolutely necessary to secure AI applications. Also `app.set('trust proxy', 1)` is required when rate-limiting is used behind a reverse proxy (like Nginx on a VPS) so the real client IPs are evaluated properly. `helmet` should be used with CSP disabled for Vite build compatability.
 **Prevention:** Always implement `express-rate-limit` (or an equivalent) on all AI/LLM integration routes and apply basic security headers using `helmet`.
+
+## 2025-06-03 - Hardcoded Firebase API Key
+**Vulnerability:** A hardcoded Firebase API key was found in `firebase-applet-config.json`, which could lead to unauthorized access or abuse of the Firebase project.
+**Learning:** Configurations meant for the client-side should not contain sensitive keys directly in version control. Storing keys in plain text JSON files makes them vulnerable to exposure.
+**Prevention:** Always inject sensitive keys via environment variables (e.g., `import.meta.env` for Vite applications) at build/runtime rather than storing them in hardcoded config files.
