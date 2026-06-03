@@ -53,6 +53,9 @@ export function WalletView() {
 
       try {
         const balanceWei = await provider.getBalance(address);
+        if (balanceWei === null || balanceWei === undefined) {
+          throw new Error('Balance returned null or undefined');
+        }
         setBalance(formatEther(balanceWei));
       } catch (e) {
         console.warn('Failed to fetch actual balance, defaulting to 0.00', e);

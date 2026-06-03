@@ -35,9 +35,7 @@ async function startServer() {
 
   // Security: Trust proxy for accurate rate limiting behind a reverse proxy
   // Only enable if actually behind a reverse proxy (e.g., Nginx, Heroku, Google Studio)
-  if (process.env.NODE_ENV === "production") {
-    app.set('trust proxy', 1);
-  }
+  app.set('trust proxy', 1);
 
   // Security: Add security headers with CSP disabled so Vite dev/build doesn't break
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -211,7 +209,7 @@ async function startServer() {
         // 3. Fallback: Ollama local
         if (!reply) {
           try {
-            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1' });
+            const openai = new OpenAI({ apiKey: ollamaApiKey, baseURL: 'http://localhost:11434/v1' });
             const response = await openai.chat.completions.create({
               model: "qwen2.5:3b",
               messages: [
