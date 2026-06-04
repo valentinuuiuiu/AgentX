@@ -3,8 +3,14 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/
 import { getFirestore } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); // CRITICAL
+const dynamicConfig = {
+  ...firebaseConfig,
+  // 🛡️ Sentinel: Securely inject API key from environment to prevent hardcoding secrets
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey
+};
+
+const app = initializeApp(dynamicConfig);
+export const db = getFirestore(app, dynamicConfig.firestoreDatabaseId); // CRITICAL
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
