@@ -1,6 +1,6 @@
 web3>=6.0.0
 fastapi>=0.95.2
-uvicorn>=0.22.0
+uvicorn>=0.49.0
 python-dotenv>=1.0.0
 eth-utils>=2.0.0
 eth-typing>=3.0.0
