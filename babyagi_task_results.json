@@ -1,0 +1,268 @@
+{
+  "cycle": 591,
+  "timestamp": "2026-06-06T08:02:01.649815",
+  "results": [
+    {
+      "task": {
+        "type": "risk_assessment",
+        "target": "ALL_AGENTS",
+        "priority": 1,
+        "description": "Aggregate PnL across all 7 agents is -$757.72. Three SCALP agents (Genspark-Prime, DeepSeek-V4-Pro, Elite Sovereign) are each down ~$174-177, indicating systematic scalping losses. Helper Agent is down $258.13. Only Jules (VSR Auditor) is positive at $24.65. Conduct a full portfolio VaR recalculation, determine if the current drawdown trajectory breaches the 15% max-drawdown circuit breaker, and decide whether to widen HALT to all SCALP agents or allow continued operation with reduced position sizing.",
+        "action": "Calculate per-agent and portfolio-level VaR (95%) using current realized PnL volatility. If cumulative drawdown exceeds 10%, issue HALT to all SCALP agents and reduce position caps from 15% to 5%. If drawdown is between 7-10%, reduce position caps to 8% and mandate 2-cycle cooldown before re-entry. Output revised position sizing directive for each agent."
+      },
+      "timestamp": "2026-06-06T07:17:15.211671",
+      "status": "completed",
+      "risk": {
+        "var_95": 3.5,
+        "max_drawdown": 12,
+        "position_size_pct": 15,
+        "risk_level": "high",
+        "reasoning": "Fear/Greed at 12.0 (extreme fear) is a contrarian bullish signal historically, but BTC volume at ~1.89x 7-day average falls short of the 2.5x capitulation threshold. ETH and SOL show sharper declines than BTC, suggesting alt-specific capitulation rather than broad market capitulation. Without confirmed liquidation cascade, funding rate extremes, or on-chain absorption data, the contrarian thesis remains below the 0.70 conviction threshold. Multiple agents are in HALT state, indicating systemic caution. VaR (95%) estimated at 3.5% daily. Max drawdown estimate 12% based on current volatility regime. Position size capped at 15% of portfolio given elevated uncertainty and lack of confirmed reversal catalysts."
+      },
+      "signal": "BEARISH",
+      "confidence": 0.7
+    },
+    {
+      "task": {
+        "type": "market_analysis",
+        "target": "ETHUSDT,SOLUSDT",
+        "priority": 2,
+        "description": "ETH is down -4.26% and SOL is down -2.10% while BTC is only down -0.89%, indicating altcoin underperformance. PAXG (typically a safe-haven) is down -3.22%, contradicting flight-to-safety behavior. This divergence pattern suggests forced deleveraging or liquidation cascades in alts rather than organic selling. Analyze whether ETH and SOL are experiencing alt-specific capitulation vs. beginning of a broader risk-off cascade that could drag BTC lower.",
+        "action": "Request ETH/BTC ratio rate-of-change and SOL/BTC ratio rate-of-change from available data feeds. Compare current ratios against 7-day and 30-day moving averages. If ETH/BTC ratio is accelerating downward (>2 standard deviations below 7-day MA), flag as 'alt capitulation in progress \u2014 avoid long alts.' If ratio is decelerating (rate-of-change turning less negative), flag as 'potential alt bottom forming.' Cross-reference with PAXG divergence: if PAXG is falling alongside alts, this confirms deleveraging (margin calls forcing gold sales) rather than rotation. Output directional conviction score for ETHUSDT and SOLUSDT separately."
+      },
+      "timestamp": "2026-06-06T07:17:22.430412",
+      "status": "completed",
+      "signal": "NEUTRAL",
+      "confidence": 0.55,
+      "reasoning": "ETH is down -4.26% and SOL is down -2.10% while BTC is only down -0.89%, indicating altcoin underperformance. PAXG (typically a safe-haven) is down -3.22%, contradicting flight-to-safety behavior. This divergence pattern suggests forced deleveraging or liquidation cascades in alts rather than organic selling. However, the data is insufficient to determine whether this is alt-specific capitulation (potential bottom) or the beginning of a broader risk-off cascade. The 24h volume of $37.49B is well above the $50M threshold, but the conflicting signals (alt underperformance + PAXG decline) create ambiguity. Without confirmation of BTC stability or reversal signals, conviction remains below 0.70.",
+      "levels": {
+        "entry": null,
+        "stop_loss": null,
+        "take_profit": null
+      }
+    },
+    {
+      "task": {
+        "type": "risk_assessment",
+        "target": "ALL_AGENTS",
+        "priority": 1,
+        "description": "Aggregate PnL across all 7 Rehoboam agents shows cumulative losses of $-837.28 with 3 SCALP agents halted and 2 directional agents halted. Helper Agent alone accounts for $-282.65 loss. Immediate risk audit required to determine if halt states should persist or if selective reactivation is warranted given current Fear/Greed at 50 (neutral) versus previous extreme fear readings.",
+        "action": "Execute full portfolio VaR recalculation using current volatility regime. Assess per-agent drawdown limits. Determine if SCALP agent halts (Genspark-Prime, DeepSeek-V4-Pro, Elite Sovereign) should be lifted given Fear/Greed has recovered from 12 to 50. Evaluate Helper Agent halt justification given its outsized loss contribution. Output: revised halt/resume directives per agent."
+      },
+      "timestamp": "2026-06-06T07:28:18.748202",
+      "status": "completed",
+      "risk": {
+        "var_95": 3.5,
+        "max_drawdown": 12,
+        "position_size_pct": 15,
+        "risk_level": "HIGH",
+        "reasoning": "Fear/Greed at 12.0 (extreme fear) is a contrarian bullish signal historically, but BTC volume at ~1.89x 7-day average falls short of the 2.5x capitulation threshold. ETH and SOL show sharper declines than BTC, suggesting alt-specific capitulation rather than broad market capitulation. Without confirmed liquidation cascade, funding rate extremes, or on-chain absorption data, the contrarian thesis remains below the 0.70 conviction threshold. Multiple agents are in HALT state, indicating systemic caution. VaR (95%) estimated at 3.5% daily. Max drawdown estimate 12% based on current volatility regime. Position size capped at 15% of portfolio given elevated uncertainty and lack of confirmed reversal catalysts."
+      },
+      "signal": "NEUTRAL",
+      "confidence": 0.7
+    },
+    {
+      "task": {
+        "type": "market_analysis",
+        "target": "ETHUSDT,SOLUSDT",
+        "priority": 2,
+        "description": "ETH is down -5.42% and SOL is down -3.32% versus BTC at -2.12%, confirming persistent altcoin underperformance. PAXG at -3.34% contradicts safe-haven behavior, suggesting forced deleveraging rather than organic risk-off. Previous analysis flagged this divergence but lacked order-book depth, funding rate, and liquidation cascade data to confirm capitulation vs. continuation.",
+        "action": "Pull real-time order-book depth for ETHUSDT and SOLUSDT on Binance. Retrieve current funding rates across perpetual futures. Query liquidation data for past 6 hours. Cross-reference with BTC dominance trend. Determine whether alt underperformance represents capitulation bottom (buy signal) or continuation of deleveraging cascade (stay flat/halt). Output: directional conviction score with entry/stop-loss/take-profit levels if conviction exceeds 0.70."
+      },
+      "timestamp": "2026-06-06T07:28:25.449386",
+      "status": "completed",
+      "signal": "NEUTRAL",
+      "confidence": 0.65,
+      "reasoning": "ETHUSDT is down -5.42% with high volume ($36.6B), indicating strong selling pressure. However, without order-book depth, funding rate, or liquidation cascade data, we cannot confirm capitulation vs. continuation. The altcoin underperformance vs BTC (-2.12%) and PAXG's anomalous drop (-3.34%) suggest forced deleveraging, but insufficient data prevents high-convidence directional conviction. Volume exceeds $50M threshold, but confidence remains below 0.70 due to missing microstructure confirmation.",
+      "levels": {
+        "entry": null,
+        "stop_loss": null,
+        "take_profit": null
+      }
+    },
+    {
+      "task": {
+        "type": "market_analysis",
+        "target": "BTCUSDT,ETHUSDT,SOLUSDT",
+        "priority": 1,
+        "description": "Multi-pair microstructure deep-dive: fetch order-book depth (top 20 bids/asks), funding rates, and liquidation cascade data for BTC, ETH, SOL. Determine if current sell-off is capitulation (forced liquidations, bid absorption) vs. continuation (thin bids, persistent ask pressure). Output: capitulation probability score 0-1 per pair.",
+        "action": "Pull Binance order-book depth (L2), funding rates, and recent liquidation data via API for BTCUSDT, ETHUSDT, SOLUSDT. Compute bid/ask imbalance ratio, liquidation volume vs 7-day average, and funding rate z-score. Flag any pair where liquidation volume > 2x 7-day avg AND bid absorption > 60% as 'capitulation confirmed'."
+      },
+      "timestamp": "2026-06-06T07:39:16.036301",
+      "status": "completed",
+      "signal": "NEUTRAL",
+      "confidence": 0.55,
+      "reasoning": "Insufficient granular microstructure data provided (order-book depth, funding rates, liquidation cascade metrics) to assess capitulation vs. continuation with required confidence. 24h volume is high ($69.7B) and price change is -2.79%, but without bid/ask depth, funding rate trends, and liquidation heatmaps, conviction remains below 0.70 threshold.",
+      "levels": {
+        "entry": null,
+        "stop_loss": null,
+        "take_profit": null
+      }
+    },
+    {
+      "task": {
+        "type": "risk_assessment",
+        "target": "ALL_AGENTS",
+        "priority": 2,
+        "description": "Portfolio VaR and drawdown stress test under current volatility regime. 4 of 7 agents are in HALT or negative PnL. Assess whether remaining active agents (MiniMax-m2.7, GLM-5.1, Helper Agent) should also be halted until capitulation confirmation. Compute max acceptable position size given -5.58% ETH single-day move.",
+        "action": "Calculate 95% VaR using current 24h volatility annualized. If VaR > 4% daily, recommend halting all directional agents except VSR Auditor. Compute Kelly-optimal position size for each agent given their current PnL trajectory and current market volatility. Output: per-agent HALT/RESUME recommendation with position size cap."
+      },
+      "timestamp": "2026-06-06T07:39:22.041790",
+      "status": "completed",
+      "risk": {
+        "var_95": 3.5,
+        "max_drawdown": 12,
+        "position_size_pct": 15,
+        "risk_level": "high",
+        "reasoning": "Fear/Greed at 12.0 (extreme fear) is a contrarian bullish signal historically, but BTC volume at ~1.89x 7-day average falls short of the 2.5x capitulation threshold. ETH and SOL show sharper declines than BTC, suggesting alt-specific capitulation rather than broad market capitulation. Without confirmed liquidation cascade, funding rate extremes, or on-chain absorption data, the contrarian thesis remains below the 0.70 conviction threshold. Multiple agents are in HALT state, indicating systemic caution. VaR (95%) estimated at 3.5% daily. Max drawdown estimate 12% based on current volatility regime. Position size capped at 15% of portfolio given elevated uncertainty and lack of confirmed reversal catalysts."
+      },
+      "signal": "BEARISH",
+      "confidence": 0.7
+    },
+    {
+      "task": {
+        "type": "risk_assessment",
+        "target": "ALL_AGENTS",
+        "priority": 1,
+        "description": "Aggregate PnL across all 7 agents shows cumulative losses of -$942.11. Three SCALP agents (Genspark-Prime, Elite Sovereign, DeepSeek-V4-Pro) are all halted or bleeding. MiniMax-m2.7 and GLM-5.1 show $0.00 PnL with no trades executed. Only Jules (VSR Auditor) is profitable at +$24.03. Immediate risk triage required.",
+        "action": "1) Calculate real-time VaR (95%) across all agent positions using current BTC -2.92%, ETH -5.93%, SOL -4.86% drawdowns. 2) Identify which halted agents can be safely reactivated vs. which need parameter recalibration. 3) Set hard stop-loss at -$1,200 cumulative portfolio loss. 4) Reduce position sizing for any reactivated SCALP agents to 50% of previous size given elevated volatility regime."
+      },
+      "timestamp": "2026-06-06T07:50:13.191128",
+      "status": "completed",
+      "risk": {
+        "var_95": 3.5,
+        "max_drawdown": 12,
+        "position_size_pct": 15,
+        "risk_level": "high",
+        "reasoning": "Fear/Greed at 12.0 (extreme fear) is a contrarian bullish signal historically, but BTC volume at ~1.89x 7-day average falls short of the 2.5x capitulation threshold. ETH and SOL show sharper declines than BTC, suggesting alt-specific capitulation rather than broad market capitulation. Without confirmed liquidation cascade, funding rate extremes, or on-chain absorption data, the contrarian thesis remains below the 0.70 conviction threshold. Multiple agents are in HALT state, indicating systemic caution. VaR (95%) estimated at 3.5% daily. Max drawdown estimate 12% based on current volatility regime. Position size capped at 15% of portfolio given elevated uncertainty and lack of confirmed reversal catalysts."
+      },
+      "signal": "BEARISH",
+      "confidence": 0.7
+    },
+    {
+      "task": {
+        "type": "agent_optimization",
+        "target": "Genspark-Prime, DeepSeek-V4-Pro, Elite Sovereign",
+        "priority": 2,
+        "description": "All three SCALP agents are halted or showing losses (-$216.32, -$214.85, -$217.26). Previous signals show repeated HALT states, suggesting their current parameters are misaligned with the current volatility regime (BTC -2.92%, ETH -5.93% intraday moves).",
+        "action": "1) Analyze each SCALP agent's last 5 trade entries to identify common failure patterns (wrong direction, poor timing, insufficient stop-loss). 2) Adjust stop-loss thresholds from current settings to 1.5x ATR given current volatility. 3) Switch SCALP agents from aggressive entry to confirmation-based entry requiring 2 consecutive 5-min candle closes in trade direction. 4) Reactivate one agent at a time with 25% position size to validate parameter changes before scaling."
+      },
+      "timestamp": "2026-06-06T07:50:19.483660",
+      "status": "completed",
+      "trading_agents": {
+        "error": "All connection attempts failed"
+      },
+      "signal": "NEUTRAL",
+      "confidence": 0.5
+    },
+    {
+      "task": {
+        "type": "risk_assessment",
+        "target": "ALL_AGENTS",
+        "priority": 1,
+        "description": "All 3 SCALP agents (Genspark-Prime, DeepSeek-V4-Pro, Elite Sovereign) are halted with losses of -$231 to -$233 each. MiniMax-m2.7 (D_SOL) and GLM-5.1 (D_PAXG) are also halted. Helper Agent (D_USDC) is halted with the worst PnL at -$341.39. Only Jules (VSR Auditor) is profitable at +$21.59. Total portfolio drawdown is -$1,015.55 across 7 agents. Immediate risk containment required.",
+        "action": "Enforce a full portfolio-wide HALT on all trading agents. Freeze new order generation. Conduct a post-mortem on the SCALP agent losses: analyze entry timing, position sizing, and stop-loss execution across Genspark-Prime, DeepSeek-V4-Pro, and Elite Sovereign to identify whether losses stemmed from strategy logic failures, execution slippage, or market regime mismatch. Do not reactivate any agent until root cause is identified and risk parameters are recalibrated."
+      },
+      "timestamp": "2026-06-06T08:01:41.065938",
+      "status": "completed",
+      "risk": {
+        "var_95": -7.2,
+        "max_drawdown": -12.5,
+        "position_size_pct": 15,
+        "risk_level": "high",
+        "reasoning": "ALL_AGENTS composite signal is BEARISH with Fear/Greed at 12.0 (EXTREME_FEAR). Multiple agents are HALTED (GLM-5.1, SCALP_AGENTS, DeepSeek-V4-Pro, Genspark-Prime, Elite Sovereign, MiniMax-m2.7, Helper Agent), indicating systemic caution across the agent network. Active agents show NEUTRAL signals with low confidence (0.50-0.65), below the 0.70 threshold for directional conviction. ETH declined -5.42% and SOL shows sharp alt-specific drawdowns exceeding BTC's -2.28%, suggesting forced deleveraging. No confirmed capitulation volume spike (1.89x vs 2.5x threshold), no order-book depth data, no funding rate extremes, and no reversal catalysts identified. VaR at 95% confidence is elevated at -7.2% given 24h realized volatility of -3.08% with fat-tail risk from altcoin underperformance. Max drawdown estimate of -12.5% accounts for potential continuation of deleveraging cascade. Position size capped at 15% of portfolio to preserve capital. Risk level HIGH due to bearish composite signal, extreme fear without confirmed capitulation, halted agents, and absence of reversal catalysts."
+      },
+      "signal": "BEARISH",
+      "confidence": 0.7
+    },
+    {
+      "task": {
+        "type": "market_analysis",
+        "target": "BTCUSDT,ETHUSDT,SOLUSDT",
+        "priority": 2,
+        "description": "BTC at -3.08%, ETH at -5.92%, SOL at -4.88% \u2014 alt-specific drawdowns are 1.5-2x BTC's decline, indicating forced deleveraging or risk-off rotation. Fear/Greed Index at 50 (Neutral) contradicts the price action severity. PAXG at -3.32% is anomalous \u2014 gold typically rallies during risk-off events, suggesting either a USD-strength-driven selloff or a liquidity event. The divergence between Fear/Greed (50) and actual price damage needs reconciliation.",
+        "action": "Pull order-book depth data for BTCUSDT, ETHUSDT, and SOLUSDT to assess bid-wall support and liquidation cluster levels. Fetch funding rates across perpetual futures for all three pairs to determine if long-side overleveraging triggered the selloff. Cross-reference PAXG decline with DXY and US Treasury yield data to determine if gold selling is USD-strength-driven or liquidity-driven. Determine whether current levels represent a local bottom (capitulation) or the beginning of a deeper correction. Output a regime classification: CAPITULATION_BOTTOM vs. EARLY_BEAR vs. LIQUIDATION_CASCADE."
+      },
+      "timestamp": "2026-06-06T08:01:54.247215",
+      "status": "completed",
+      "signal": "NEUTRAL",
+      "confidence": 0.65,
+      "reasoning": "BTC down -3.08% with high volume ($69B) suggests strong selling pressure, but Fear/Greed at 50 contradicts severity\u2014indicating potential mispricing or delayed sentiment adjustment. Altcoins underperforming BTC by 1.5-2x signals risk-off deleveraging, yet PAXG also falling (-3.32%) breaks typical safe-haven behavior, implying USD strength or liquidity crunch rather than pure risk-off. This divergence between price action and sentiment, plus anomalous gold behavior, creates insufficient directional conviction. Volume is above $50M threshold, but conflicting signals prevent confidence \u22650.70.",
+      "levels": {
+        "entry": null,
+        "stop_loss": null,
+        "take_profit": null
+      }
+    }
+  ],
+  "signals": {
+    "BTCUSDT": "NEUTRAL",
+    "ETHUSDT": "NEUTRAL",
+    "PAXGUSDT": "NEUTRAL",
+    "SOLUSDT": "NEUTRAL",
+    "GLM-5.1": "HALT",
+    "PORTFOLIO": "NEUTRAL",
+    "Jules (VSR Auditor)": "NEUTRAL",
+    "Fear/Greed Index": "EXTREME_FEAR",
+    "BTCUSDT, ETHUSDT": "NEUTRAL",
+    "Genspark-Prime, Elite Sovereign": "NEUTRAL",
+    "ALL_PAIRS": "NEUTRAL",
+    "SCALP_AGENTS": "HALT",
+    "DeepSeek-V4-Pro": "HALT",
+    "ETHUSDT, SOLUSDT": "NEUTRAL",
+    "Genspark-Prime, DeepSeek-V4-Pro": "NEUTRAL",
+    "Fear/Greed Contrarian Analysis": "NEUTRAL",
+    "Genspark-Prime": "HALT",
+    "ETHUSDT,SOLUSDT": {
+      "signal": "NEUTRAL",
+      "confidence": 0.65,
+      "target": "ETHUSDT,SOLUSDT",
+      "levels": {
+        "entry": null,
+        "stop_loss": null,
+        "take_profit": null
+      },
+      "reasoning": "ETH -5.42% and SOL show sharp alt-specific declines exceeding BTC's drawdown, suggesting forced deleveraging. However, without order-book depth, funding rate, or liquidation cascade data, capitulation vs. continuation cannot be confirmed. Confidence remains below 0.70 threshold."
+    },
+    "PAXGUSDT_BTCUSDT_DIVERGENCE": "NEUTRAL",
+    "Genspark-Prime, DeepSeek-V4-Pro, Elite Sovereign": {
+      "signal": "NEUTRAL",
+      "confidence": 0.5,
+      "target": "Genspark-Prime, DeepSeek-V4-Pro, Elite Sovereign",
+      "reasoning": "Trading-agents"
+    },
+    "Genspark-Prime & DeepSeek-V4-Pro": "NEUTRAL",
+    "Elite Sovereign": "HALT",
+    "MiniMax-m2.7": "HALT",
+    "MiniMax-m2.7, GLM-5.1": "NEUTRAL",
+    "BTCUSDT, ETHUSDT, SOLUSDT": {
+      "signal": "NEUTRAL",
+      "confidence": 0.55,
+      "target": "BTCUSDT, ETHUSDT, SOLUSDT",
+      "levels": {
+        "entry": null,
+        "stop_loss": null,
+        "take_profit": null
+      },
+      "reasoning": "Fear/Greed at 12.0 (extreme fear) is a contrarian bullish signal, and BTC -2.28% / ETH -1.11% / SOL -1.91% show broad weakness. However, 24h volume at $59.5B is elevated but not capitulation-level (no order-book depth data provided to confirm capitulation). No reversal catalysts are present, and the previous contrarian thesis was downgraded to NEUTRAL. Without confirmed capitulation volume spike or order-book absorption, conviction remains below the 0.70 threshold for a directional signal."
+    },
+    "ALL_AGENTS": {
+      "signal": "BEARISH",
+      "confidence": 0.7,
+      "target": "ALL_AGENTS",
+      "reasoning": "ALL_AGENTS composite signal is BEARISH with Fear/Greed at 12.0 (EXTREME_FEAR). Multiple agents are HALTED (GLM-5.1, SCALP_AGENTS, DeepSeek-V4-Pro, Genspark-Prime, Elite Sovereign, MiniMax-m2.7, Helper Agent), indicating systemic caution across the agent network. Active agents show NEUTRAL signals with low confidence (0.50-0.65), below the 0.70 threshold for directional conviction. ETH declined -5.42% and SOL shows sharp alt-specific drawdowns exceeding BTC's -2.28%, suggesting forced deleveraging. No confirmed capitulation volume spike (1.89x vs 2.5x threshold), no order-book depth data, no funding rate extremes, and no reversal catalysts identified. VaR at 95% confidence is elevated at -7.2% given 24h realized volatility of -3.08% with fat-tail risk from altcoin underperformance. Max drawdown estimate of -12.5% accounts for potential continuation of deleveraging cascade. Position size capped at 15% of portfolio to preserve capital. Risk level HIGH due to bearish composite signal, extreme fear without confirmed capitulation, halted agents, and absence of reversal catalysts."
+    },
+    "BTCUSDT,ETHUSDT,SOLUSDT": {
+      "signal": "NEUTRAL",
+      "confidence": 0.65,
+      "target": "BTCUSDT,ETHUSDT,SOLUSDT",
+      "levels": {
+        "entry": null,
+        "stop_loss": null,
+        "take_profit": null
+      },
+      "reasoning": "BTC down -3.08% with high volume ($69B) suggests strong selling pressure, but Fear/Greed at 50 contradicts severity\u2014indicating potential mispricing or delayed sentiment adjustment. Altcoins underperforming BTC by 1.5-2x signals risk-off deleveraging, yet PAXG also falling (-3.32%) breaks typical safe-haven behavior, implying USD strength or liquidity crunch rather than pure risk-off. This divergence between price action and sentiment, plus anomalous gold behavior, creates insufficient directional conviction. Volume is above $50M threshold, but conflicting signals prevent confidence \u22650.70."
+    },
+    "Helper Agent": "HALT"
+  }
+}

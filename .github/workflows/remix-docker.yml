@@ -1,0 +1,27 @@
+name: Remix Connector Docker Build & Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: |
+          docker build -t remix-opus-connector:ci -f mcp-services/remix-opus-connector/Dockerfile .
+      - name: Run container
+        run: |
+          docker run -d --name remix_ci -p 3010:3010 remix-opus-connector:ci || true
+          sleep 5
+      - name: Health check
+        run: |
+          if curl -sfS http://localhost:3010/health; then
+            echo "Remix health OK"
+          else
+            echo "Remix health failed"; docker logs remix_ci || true; exit 1
+          fi
+      - name: Cleanup
+        run: |
+          docker rm -f remix_ci || true

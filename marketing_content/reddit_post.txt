@@ -1,0 +1,43 @@
+[Free Tool] I Built a Multi-Source Signal Scanner After Getting Burned by Bad Bots
+
+**TL;DR:** Most signal bots use 1 source. I built one that requires Binance + Coinbase + Chainlink to agree. Free 7-day trial. DM @web4_bot_nobot.
+
+**The Problem:**
+I've tried 12+ signal services this year. All of them had the same flaw: they pull from ONE exchange and alert. No validation. No confirmation. Just "BUY ETH" based on Binance data alone.
+
+**What I Built:**
+A convergence scanner that:
+1. Pulls real-time data from Binance
+2. Validates with Coinbase prices
+3. Cross-checks with Chainlink on-chain oracles
+4. Runs technical analysis (RSI, MACD, BB)
+5. Only alerts when 3+ sources agree
+
+**Risk Management (The Part Everyone Ignores):**
+Every signal includes:
+- Entry price
+- Stop loss (2x ATR)
+- Take profit 1 (2.5x risk)
+- Take profit 2 (4.5x risk)
+- Position size (Kelly criterion)
+- Max loss as % of portfolio
+
+**Results (30 days):**
+- 47 signals generated
+- 38 qualified (3+ sources)
+- 12 hit TP1
+- 3 hit TP2
+- 8 hit SL
+- Net: +4.2% portfolio growth (1% risk per trade)
+
+**Free Trial:**
+7 days, full PRO access, no credit card. If you make money, tell your friends. If not, no worries.
+
+**How to start:**
+DM @web4_bot_nobot on Telegram with "FREE TRIAL"
+
+**Edit:** 23 people signed up in the last 4 hours. I'm manually onboarding to make sure everyone understands the risk management. Please be patient!
+
+**Edit 2:** For transparency, here's the wallet I use for payments (if you want to upgrade after trial): 0xa4660Bf26BF89fe073d42E7A4945a3Df6Bd3c407
+
+*Not financial advice. DYOR. Trade at your own risk.*

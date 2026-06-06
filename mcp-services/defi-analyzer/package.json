@@ -1,0 +1,17 @@
+{
+  "name": "mcp-defi-analyzer",
+  "version": "1.0.0",
+  "description": "Rehoboam DeFi Analyzer MCP Server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "winston": "^3.11.0"
+  }
+}

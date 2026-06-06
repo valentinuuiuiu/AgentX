@@ -1,0 +1,324 @@
+services:
+  # Main Rehoboam API Server
+  rehoboam-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "5002:5002"
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      - API_PORT=5002
+      - PORT=5002
+      - PYTHON_ENV=docker
+      - DATABASE_URL=postgresql://rehoboam:rehoboam123@postgres:5432/rehoboam
+      - MCP_REGISTRY_URL=http://localhost:3001
+      - MCP_TRADING_AGENTS_URL=http://localhost:3700
+      - OLLAMA_BASE_URL=http://localhost:11434/v1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      postgres:
+        condition: service_started
+    volumes:
+      - ./logs:/app/logs
+
+  # Frontend Vite Server
+  rehoboam-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://localhost:5002
+      - VITE_MCP_URL=http://localhost:3001
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - rehoboam-api
+    networks:
+      - rehoboam-network
+
+  # PostgreSQL Database with pgvector
+  postgres:
+    image: docker.io/pgvector/pgvector:pg15
+    environment:
+      - POSTGRES_DB=rehoboam
+      - POSTGRES_USER=rehoboam
+      - POSTGRES_PASSWORD=rehoboam123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - rehoboam-network
+
+  # MCP Registry Service
+  mcp-registry:
+    build:
+      context: ./mcp-services
+      dockerfile: Dockerfile.registry
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - REGISTRY_PORT=3001
+      - POSTGRES_URL=postgresql://rehoboam:rehoboam123@postgres:5432/rehoboam
+    depends_on:
+      - postgres
+    networks:
+      - rehoboam-network
+
+  # Consciousness Layer
+  mcp-consciousness-layer:
+    build:
+      context: ./mcp-services/consciousness-layer
+    ports:
+      - "3600:3600"
+    env_file:
+      - .env
+    environment:
+      - MCP_SERVER_NAME=consciousness-layer
+      - REGISTRY_URL=http://mcp-registry:3001
+      - PORT=3600
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3600/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # Etherscan Analyzer
+  mcp-etherscan-analyzer:
+    build:
+      context: ./mcp-services/etherscan-analyzer
+    ports:
+      - "3101:3000"
+    env_file:
+      - .env
+    environment:
+      - MCP_SERVER_NAME=etherscan-analyzer
+      - REGISTRY_URL=http://mcp-registry:3001
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # Chainlink Feeds
+  mcp-chainlink-feeds:
+    build:
+      context: ./mcp-services/chainlink-feeds
+    ports:
+      - "3102:3000"
+    environment:
+      - MCP_SERVER_NAME=chainlink-feeds
+      - REGISTRY_URL=http://mcp-registry:3001
+      - ETHEREUM_RPC_URL=${ETHEREUM_RPC_URL}
+      - SEPOLIA_RPC_URL=${SEPOLIA_RPC_URL}
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # Function Gemma
+  mcp-function-gemma:
+    build:
+      context: ./mcp-services/function-gemma
+    ports:
+      - "3111:3111"
+    env_file:
+      - .env
+    environment:
+      - MCP_SERVER_NAME=function-gemma
+      - REGISTRY_URL=http://mcp-registry:3001
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # TradingAgents - Multi-agent LLM trading analysis
+  mcp-trading-agents:
+    build:
+      context: ./mcp-services/trading-agents
+    ports:
+      - "3700:3700"
+    env_file:
+      - .env
+    environment:
+      - MCP_SERVER_NAME=trading-agents
+      - REGISTRY_URL=http://mcp-registry:3001
+      - PORT=3700
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
+      - TRADING_AGENTS_PATH=/app/tradingagents_lib
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3700/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ../TradingAgents:/app/tradingagents_lib
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # Crypto Tracker - Real-time price feeds
+  mcp-crypto-tracker:
+    build:
+      context: ./mcp-services/crypto-tracker
+    ports:
+      - "3100:3000"
+    environment:
+      - MCP_SERVER_NAME=crypto-tracker
+      - REGISTRY_URL=http://mcp-registry:3001
+      - COINGECKO_API_KEY=${COINGECKO_API_KEY:-}
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # DeFi Analyzer - On-chain analytics
+  mcp-defi-analyzer:
+    build:
+      context: ./mcp-services/defi-analyzer
+    ports:
+      - "3103:3000"
+    env_file:
+      - .env
+    environment:
+      - MCP_SERVER_NAME=defi-analyzer
+      - REGISTRY_URL=http://mcp-registry:3001
+      - ALCHEMY_API_KEY=${ALCHEMY_API_KEY}
+      - DEFILLAMA_API_KEY=${DEFILLAMA_API_KEY:-}
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # Hive Mind Layer - Swarm intelligence
+  mcp-hive-mind-layer:
+    build:
+      context: ./mcp-services/hive-mind-layer
+    ports:
+      - "3400:3000"
+    environment:
+      - MCP_SERVER_NAME=hive-mind-layer
+      - REGISTRY_URL=http://mcp-registry:3001
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # Remix Opus Connector - Claude Opus 4.6 bridge
+  mcp-remix-opus-connector:
+    build:
+      context: ./mcp-services/remix-opus-connector
+    ports:
+      - "3010:3010"
+    env_file:
+      - .env
+    environment:
+      - MCP_SERVER_NAME=remix-opus-connector
+      - REGISTRY_URL=http://mcp-registry:3001
+      - PORT=3010
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # Vetal Foundry Forge - Security auditing
+  mcp-vetal-foundry-forge:
+    build:
+      context: ./mcp-services/vetal-foundry-forge
+    ports:
+      - "3200:3000"
+    environment:
+      - MCP_SERVER_NAME=vetal-foundry-forge
+      - REGISTRY_URL=http://mcp-registry:3001
+    depends_on:
+      - mcp-registry
+    networks:
+      - rehoboam-network
+
+  # n8n - Workflow Automation
+  n8n:
+    image: docker.io/n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    env_file:
+      - .env
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - rehoboam-network
+
+  # Redis for caching
+  redis:
+    image: docker.io/redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - rehoboam-network
+
+  # Prometheus for monitoring
+  prometheus:
+    image: docker.io/prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - rehoboam-network
+
+  # Grafana for visualization
+  grafana:
+    image: docker.io/grafana/grafana:latest
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=rehoboam123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - rehoboam-network
+
+volumes:
+  n8n_data:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  rehoboam-network:
+    driver: bridge

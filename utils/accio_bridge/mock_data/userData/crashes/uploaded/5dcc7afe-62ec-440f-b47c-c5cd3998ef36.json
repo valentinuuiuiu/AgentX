@@ -1,0 +1,12 @@
+{
+  "id": "5dcc7afe-62ec-440f-b47c-c5cd3998ef36",
+  "source": "main",
+  "crashType": "unhandled_rejection",
+  "reason": "ee.powerMonitor.on is not a function",
+  "stack": "TypeError: ee.powerMonitor.on is not a function\n    at /home/aryan/free-claude/bittensor/accio_extracted/root/app_unpacked/out/main/index.js:7:2963972\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+  "appVersion": "0.6.7",
+  "platform": "linux",
+  "arch": "x64",
+  "timestamp": 1776929973298,
+  "uploaded": true
+}

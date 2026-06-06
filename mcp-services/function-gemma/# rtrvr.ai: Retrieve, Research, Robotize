@@ -1,0 +1,88 @@
+# rtrvr.ai: Retrieve, Research, Robotize the Web with AI
+
+[rtrvr.ai](https://www.rtrvr.ai/)
+[Pricing](https://www.rtrvr.ai/pricing)
+[Blog](https://www.rtrvr.ai/blog)
+[Dashboard](https://www.rtrvr.ai/cloud)
+
+#### Core Agent
+[Getting Started](https://www.rtrvr.ai/docs)
+[Web Agent](https://www.rtrvr.ai/docs/web-agent)
+[Sheets Workflows](https://www.rtrvr.ai/docs/sheets-workflows)
+
+#### Building Blocks
+[Recordings & Grounding](https://www.rtrvr.ai/docs/recordings)
+[Tool Calling](https://www.rtrvr.ai/docs/tool-calling)
+[Knowledge Base (RAG)](https://www.rtrvr.ai/docs/knowledge-base)
+
+#### Platform Access
+[CLI & SDK](https://www.rtrvr.ai/docs/cli)
+[API Overview](https://www.rtrvr.ai/docs/api)
+[Agent API](https://www.rtrvr.ai/docs/agent)
+[Scrape API](https://www.rtrvr.ai/docs/scrape)
+[Browser as API/MCP](https://www.rtrvr.ai/docs/mcp)
+
+#### Automation
+[Shortcuts](https://www.rtrvr.ai/docs/shortcuts)
+[Triggers](https://www.rtrvr.ai/docs/triggers)
+[Webhooks](https://www.rtrvr.ai/docs/webhooks)
+[Schedules](https://www.rtrvr.ai/docs/schedules)
+
+#### Account & Security
+[Cookie Sync](https://www.rtrvr.ai/docs/cookie-sync)
+[Permissions & Privacy](https://www.rtrvr.ai/docs/permissions-privacy)
+[Docs](https://www.rtrvr.ai/docs)
+
+# Sheets Workflows
+Parallel processing for bulk data extraction — feed a spreadsheet, get structured results.
+Process hundreds or thousands of rows by connecting a Google Sheet. The agent opens URLs in parallel sub-agent tabs, performs extraction or actions for each row, and writes results back in real-time. It combines the dynamic capabilities of AI agents with the deterministic structure of spreadsheets.
+
+## How It Works
+- Upload your spreadsheet or connect an existing Google Sheet with input data
+- Define the task using a natural-language prompt
+- Specify which columns to use as context (URLs, names, search terms, etc.)
+- The agent executes the task for each row, opening parallel tabs as needed
+- Results are written back to new columns in real-time
+
+## Example: Lead Enrichment
+Input sheet with company URLs. Prompt: "Visit the website and extract the CEO name and company size"
+
+```
+Company Name,Website,Industry,CEO Name,Company Size Acme Corp,acme.com,Software,John Smith,50-100 employees Beta Inc,beta.io,Healthcare,Sarah Johnson,100-500 employees Gamma LLC,gamma.co,Finance,Mike Wilson,10-50 employees
+```
+
+
+## Advanced Use Cases
+- Price monitoring across multiple e-commerce sites
+- Contact extraction from company team pages
+- Social media profile analysis and data collection
+- Competitive research and market analysis
+- Form submissions with personalized data per row
+- Content scraping with structured JSON output
+
+## Tool Mapping in Sheets
+You can map tool calls to run for every row. The agent intelligently pulls arguments from specific columns to populate tool parameters. Include details in your prompt like: "For each row upload as contact to HubSpot using the loadContact tool."
+
+## Best Practices
+- Use clear column headers that describe the data
+- Include example rows to guide the agent's extraction pattern
+- Break complex tasks into smaller, focused workflows
+- Test with a small subset (5-10 rows) before processing large datasets
+- Use rate limiting for respectful web scraping
+
+## Platform Availability
+[PreviousWeb Agent](https://www.rtrvr.ai/docs/web-agent)
+[NextShortcuts](https://www.rtrvr.ai/docs/shortcuts)
+
+#### On this page
+[How It Works](https://www.rtrvr.ai/docs/sheets-workflows#how-it-works)
+[Example: Lead Enrichment](https://www.rtrvr.ai/docs/sheets-workflows#example-lead-enrichment)
+[Advanced Use Cases](https://www.rtrvr.ai/docs/sheets-workflows#advanced-use-cases)
+[Tool Mapping in Sheets](https://www.rtrvr.ai/docs/sheets-workflows#tool-mapping-in-sheets)
+[Best Practices](https://www.rtrvr.ai/docs/sheets-workflows#best-practices)
+[Platform Availability](https://www.rtrvr.ai/docs/sheets-workflows#platform-availability)
+
+### Ready to automate?
+Join teams using rtrvr.ai to build playful, powerful web automation workflows.
+[Start Building](https://www.rtrvr.ai/cloud)
+[API Docs](https://www.rtrvr.ai/docs/api)

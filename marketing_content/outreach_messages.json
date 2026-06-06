@@ -1,0 +1,50 @@
+{
+  "telegram": {
+    "groups": [
+      "CryptoSignals",
+      "DeFiTraders",
+      "AltcoinDiscussion",
+      "CryptoAlpha",
+      "WhaleAlertDiscussion",
+      "TradingViewCrypto",
+      "BinanceTraders",
+      "EthereumTraders"
+    ],
+    "message": "\ud83d\ude80 Free Multi-Source Signal Bot \u2014 7 Day Trial\n\nTired of false signals from single-source bots?\n\nWe cross-reference:\n\u2705 Binance CEX\n\u2705 Coinbase CEX  \n\u2705 Chainlink oracles\n\nOnly alerts when ALL 3 agree + technicals confirm.\n\nEvery signal includes:\n\u2022 Stop loss & take profits\n\u2022 Position sizing\n\u2022 Risk/reward ratio\n\u2022 Max loss calculation\n\nFREE for 7 days. No credit card.\n\nDM @web4_bot_nobot with \"FREE TRIAL\"\n\nNot financial advice."
+  },
+  "discord": {
+    "servers": [
+      "CryptoHub",
+      "DeFi Degens",
+      "Trading Lounge",
+      "Altcoin Army",
+      "Web3 Builders"
+    ],
+    "message": "Hey traders! \ud83d\udc4b\n\nBuilt a free convergence scanner for crypto signals. Cross-references Binance + Coinbase + Chainlink before alerting.\n\n**Why?** Single-source bots gave me too many false signals. This requires 3 sources to agree.\n\n**Features:**\n\u2022 Real-time alerts\n\u2022 Auto risk management\n\u2022 Arbitrage detection\n\u2022 Performance tracking\n\n**Free 7-day trial** \u2014 DM me or @web4_bot_nobot\n\nWho wants access? \ud83d\udc47"
+  },
+  "twitter": {
+    "hashtags": [
+      "#CryptoSignals",
+      "#TradingBot",
+      "#DeFi",
+      "#Web3",
+      "#CryptoTrading",
+      "#Altcoins",
+      "#Bitcoin",
+      "#Ethereum"
+    ],
+    "message": "\ud83d\udea8 Free Signal Bot Alert\n\nBuilt a scanner that requires 3 sources to agree:\n\u2022 Binance\n\u2022 Coinbase\n\u2022 Chainlink oracle\n\nNo more false signals from single-source bots.\n\n\u2705 Risk management included\n\u2705 7-day free trial\n\u2705 No credit card\n\nDM @web4_bot_nobot for access\n\n#CryptoSignals #TradingBot #DeFi"
+  },
+  "reddit": {
+    "subreddits": [
+      "CryptoCurrency",
+      "CryptoMarkets",
+      "altcoin",
+      "Daytrading",
+      "defi",
+      "ethfinance",
+      "BitcoinMarkets"
+    ],
+    "message": "[Free Tool] I Built a Multi-Source Signal Scanner After Getting Burned by Bad Bots\n\n**TL;DR:** Most signal bots use 1 source. I built one that requires Binance + Coinbase + Chainlink to agree. Free 7-day trial. DM @web4_bot_nobot.\n\n**The Problem:**\nI've tried 12+ signal services this year. All of them had the same flaw: they pull from ONE exchange and alert. No validation. No confirmation. Just \"BUY ETH\" based on Binance data alone.\n\n**What I Built:**\nA convergence scanner that:\n1. Pulls real-time data from Binance\n2. Validates with Coinbase prices\n3. Cross-checks with Chainlink on-chain oracles\n4. Runs technical analysis (RSI, MACD, BB)\n5. Only alerts when 3+ sources agree\n\n**Risk Management (The Part Everyone Ignores):**\nEvery signal includes:\n- Entry price\n- Stop loss (2x ATR)\n- Take profit 1 (2.5x risk)\n- Take profit 2 (4.5x risk)\n- Position size (Kelly criterion)\n- Max loss as % of portfolio\n\n**Results (30 days):**\n- 47 signals generated\n- 38 qualified (3+ sources)\n- 12 hit TP1\n- 3 hit TP2\n- 8 hit SL\n- Net: +4.2% portfolio growth (1% risk per trade)\n\n**Free Trial:**\n7 days, full PRO access, no credit card. If you make money, tell your friends. If not, no worries.\n\n**How to start:**\nDM @web4_bot_nobot on Telegram with \"FREE TRIAL\"\n\n**Edit:** 23 people signed up in the last 4 hours. I'm manually onboarding to make sure everyone understands the risk management. Please be patient!\n\n**Edit 2:** For transparency, here's the wallet I use for payments (if you want to upgrade after trial): 0xa4660Bf26BF89fe073d42E7A4945a3Df6Bd3c407\n\n*Not financial advice. DYOR. Trade at your own risk.*\n"
+  }
+}

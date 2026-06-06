@@ -1,0 +1,52 @@
+[
+  {
+    "source": "telegram_group",
+    "group": "Crypto Traders Hub",
+    "username": "trader_john",
+    "message_preview": "Looking for reliable trading signals...",
+    "keywords_matched": [
+      "trading signals",
+      "crypto signals"
+    ],
+    "interest_score": 0.85,
+    "timestamp": "2026-05-04T12:00:24.886523",
+    "status": "new",
+    "notes": "Active in trading groups, looking for alpha",
+    "score": 0.74,
+    "category": "warm",
+    "id": "lead_20260504120024_7851"
+  },
+  {
+    "source": "twitter",
+    "username": "crypto_whale_2024",
+    "message_preview": "Tired of losing money on bad signals. Need something that actually works.",
+    "keywords_matched": [
+      "signals",
+      "trading"
+    ],
+    "interest_score": 0.75,
+    "timestamp": "2026-05-04T12:00:24.886523",
+    "status": "new",
+    "notes": "Frustrated with current signal provider",
+    "score": 0.35000000000000003,
+    "category": "cold",
+    "id": "lead_20260504120024_3177"
+  },
+  {
+    "source": "reddit",
+    "subreddit": "r/CryptoCurrency",
+    "username": "defi_degen",
+    "message_preview": "Anyone know a good arbitrage bot or signal service?",
+    "keywords_matched": [
+      "arbitrage",
+      "signal service"
+    ],
+    "interest_score": 0.9,
+    "timestamp": "2026-05-04T12:00:24.886523",
+    "status": "new",
+    "notes": "Interested in arbitrage specifically - high value lead",
+    "score": 0.66,
+    "category": "warm",
+    "id": "lead_20260504120024_7051"
+  }
+]

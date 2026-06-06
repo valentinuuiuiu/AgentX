@@ -1,0 +1,29 @@
+name: Telegram Send Message
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_chat_id:
+        description: 'Chat id (group) to send the message to'
+        required: true
+      message:
+        description: 'Message to send'
+        required: true
+
+jobs:
+  send_message:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deps
+        run: python -m pip install --upgrade pip && pip install python-telegram-bot==22.7
+      - name: Send message
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TARGET_CHAT_ID: ${{ github.event.inputs.target_chat_id }}
+          WELCOME_MESSAGE: ${{ github.event.inputs.message }}
+        run: python rehoboam_telegram_bot.py --send-message

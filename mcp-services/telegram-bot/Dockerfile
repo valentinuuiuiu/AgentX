@@ -1,0 +1,11 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir python-telegram-bot httpx aiohttp
+
+COPY bot.py .
+
+EXPOSE 3800
+
+CMD ["python", "bot.py"]

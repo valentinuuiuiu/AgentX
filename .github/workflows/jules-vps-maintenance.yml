@@ -1,0 +1,69 @@
+name: 🌙 Jules — VPS Maintenance & Health Check
+
+on:
+  schedule:
+    # Every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  vps-health:
+    runs-on: ubuntu-latest
+    name: VPS Health Check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check VPS Health
+        uses: appleboy/ssh-action@master
+        with:
+          host: 163.245.213.254
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            echo "=== $(date) ==="
+            echo "--- System Status ---"
+            systemctl is-active nginx || systemctl restart nginx
+            echo "--- API Health ---"
+            curl -sf http://localhost:5000/health || echo "API DOWN"
+            echo "--- Disk Usage ---"
+            df -h / | tail -1
+            echo "--- Memory ---"
+            free -h | grep Mem
+            echo "--- Podman Containers ---"
+            podman ps --format "table {{.Names}}\t{{.Status}}" || docker ps --format "table {{.Names}}\t{{.Status}}"
+            echo "--- Signal Bot ---"
+            pgrep -f hermes_signal_bot.py && echo "Signal bot running" || echo "Signal bot NOT running"
+
+  git-sync:
+    runs-on: ubuntu-latest
+    name: Sync Code from GitHub
+    needs: vps-health
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: 163.245.213.254
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /root/clean_rehoboam_project
+            git pull origin main
+            echo "Code synced at $(date)"
+
+  backup-logs:
+    runs-on: ubuntu-latest
+    name: Backup Trading Logs
+    needs: vps-health
+    steps:
+      - uses: actions/checkout@v4
+      - name: Backup logs
+        uses: appleboy/ssh-action@master
+        with:
+          host: 163.245.213.254
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            mkdir -p /root/backups
+            tar -czf /root/backups/logs_$(date +%Y%m%d_%H%M).tar.gz /root/logs/ /root/clean_rehoboam_project/signal_data/ 2>/dev/null || true
+            echo "Backup completed at $(date)"

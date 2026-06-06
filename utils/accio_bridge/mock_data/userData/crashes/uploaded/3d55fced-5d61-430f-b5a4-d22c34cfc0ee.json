@@ -1,0 +1,12 @@
+{
+  "id": "3d55fced-5d61-430f-b5a4-d22c34cfc0ee",
+  "source": "main",
+  "crashType": "uncaught_exception",
+  "reason": "listen EADDRINUSE: address already in use :::4567",
+  "stack": "Error: listen EADDRINUSE: address already in use :::4567\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Object.<anonymous> (/home/aryan/free-claude/bittensor/clean_rehoboam_project/utils/accio_bridge/start_accio_agent.cjs:192:12)\n    at Module._compile (node:internal/modules/cjs/loader:1705:14)\n    at Object..js (node:internal/modules/cjs/loader:1838:10)\n    at Module.load (node:internal/modules/cjs/loader:1441:32)\n    at Function.<anonymous> (node:internal/modules/cjs/loader:1263:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)",
+  "appVersion": "0.6.7",
+  "platform": "linux",
+  "arch": "x64",
+  "timestamp": 1776929204311,
+  "uploaded": true
+}

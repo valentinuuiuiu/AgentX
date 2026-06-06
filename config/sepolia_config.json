@@ -1,0 +1,71 @@
+{
+  "sepolia": {
+    "name": "Ethereum Sepolia Testnet",
+    "chainId": 11155111,
+    "rpcUrl": "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}",
+    "blockExplorer": "https://sepolia.etherscan.io",
+    "_note": "Contracts verified deployed on Sepolia as of April 2026. V2Factory and UniversalRouter confirmed. Token/router addresses need deployment — use deploy_contracts.py to deploy WETH9 and setup DEX infrastructure.",
+    "contracts": {
+      "flashArbMaster": "0x96f15Fe7Da0f32EB3a77e4eA5bf55bc2CAc29844",
+      "uniswapV2Factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+      "universalRouter": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
+      "aavePoolAddressesProvider": "0x011b11C8D7A9E790114FB9F7A0e2ACF7d2B5C171",
+      "uniswapV2Router": "0xC532a71256731900393Bc4E2350BD5D53D2C0B6E",
+      "uniswapV3Router": "0x3bBA5055a5e246a3E413939055e1e4e1a0E13C5D",
+      "sushiswapRouter": "0xC532a71256731900393Bc4E2350BD5D53D2C0B6E"
+    },
+    "tokens": {
+      "_note": "Token contracts below are NOT deployed yet. Deploy WETH9 first, then create Uniswap pairs.",
+      "WETH": {
+        "address": "0xC558DB57039C6E8E0A6ad8A51C573a13E1C0D2A0",
+        "decimals": 18,
+        "symbol": "WETH",
+        "deployed": false
+      },
+      "USDC": {
+        "address": "0x94a9D9AC8415D5394D6E6f4a0d2782c3F7d13b2e",
+        "decimals": 6,
+        "symbol": "USDC",
+        "deployed": false
+      },
+      "DAI": {
+        "address": "0xFF34B3D4Aee8ddCd6F9AFF1e12E189D34Da9415b",
+        "decimals": 18,
+        "symbol": "DAI",
+        "deployed": false
+      },
+      "LINK": {
+        "address": "0xf8Fb3713D3E84F0B9727F97E3493F9e530A5e64e",
+        "decimals": 18,
+        "symbol": "LINK",
+        "deployed": false
+      }
+    },
+    "dexs": {
+      "uniswap_v2": {
+        "factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+        "router": "0xC532a71256731900393Bc4E2350BD5D53D2C0B6E",
+        "type": "uniswap_v2",
+        "factory_deployed": true,
+        "router_deployed": false
+      },
+      "uniswap_v3": {
+        "router": "0x3bBA5055a5e246a3E413939055e1e4e1a0E13C5D",
+        "factory": "0x0227631A6341C6B2D6c1e11C6A0d2D9Bc19A1a1d",
+        "type": "uniswap_v3",
+        "deployed": false
+      },
+      "universal_router": {
+        "address": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
+        "deployed": true
+      }
+    },
+    "faucets": [
+      "https://sepoliafaucet.com",
+      "https://www.infura.io/faucet/sepolia",
+      "https://faucet.quicknode.com/ethereum/sepolia",
+      "https://faucets.chain.link/sepolia",
+      "https://cloud.google.com/application/web3/faucet/ethereum/sepolia"
+    ]
+  }
+}

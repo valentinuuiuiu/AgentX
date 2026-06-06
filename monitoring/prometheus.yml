@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'rehoboam-api'
+    static_configs:
+      - targets: ['rehoboam-api:5002']
+
+  - job_name: 'mcp-registry'
+    static_configs:
+      - targets: ['mcp-registry:3001']
+
+  - job_name: 'mcp-consciousness-layer'
+    static_configs:
+      - targets: ['mcp-consciousness-layer:3000']
+
+  - job_name: 'mcp-trading-agents'
+    static_configs:
+      - targets: ['mcp-trading-agents:3700']
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']

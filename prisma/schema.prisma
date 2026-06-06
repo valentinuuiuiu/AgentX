@@ -1,0 +1,419 @@
+// Rehoboam Platform - Prisma Schema
+// AI-Powered Web3 Trading Platform
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== USER & WALLET ====================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  wallets       Wallet[]
+  preferences   UserPreference?
+  portfolio     Portfolio?
+  trades        Trade[]
+  strategies    Strategy[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Wallet {
+  id           String   @id @default(cuid())
+  userId       String
+  address      String   @unique
+  chainId      Int
+  walletType   String   @default("metaMask") // metaMask, talisman, etc.
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balances     WalletBalance[]
+  trades       Trade[]
+
+  @@unique([userId, address])
+  @@map("wallets")
+}
+
+model WalletBalance {
+  id          String   @id @default(cuid())
+  walletId    String
+  tokenSymbol String
+  balance     Decimal  @db.Decimal(32, 18)
+  valueUsd    Decimal? @db.Decimal(32, 8)
+  updatedAt   DateTime @default(now())
+
+  wallet      Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@unique([walletId, tokenSymbol])
+  @@map("wallet_balances")
+}
+
+model UserPreference {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  riskTolerance   String   @default("moderate") // low, moderate, high
+  defaultNetwork  String   @default("arbitrum")
+  defaultSlippage Decimal  @default(0.01) @db.Decimal(5, 4)
+  notifications   Boolean  @default(true)
+  theme           String   @default("dark")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+// ==================== MARKET DATA ====================
+
+model Token {
+  id          String   @id @default(cuid())
+  symbol      String   @unique
+  name        String
+  decimals    Int      @default(18)
+  contractAddr String?
+  coingeckoId String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  prices      PricePoint[]
+  trades      Trade[]
+  opportunities ArbitrageOpportunity[]
+
+  @@map("tokens")
+}
+
+model PricePoint {
+  id        String   @id @default(cuid())
+  tokenId   String
+  source    String   // binance, coinbase, chainlink, bo_signals_ai
+  price     Decimal  @db.Decimal(32, 18)
+  volume    Decimal? @db.Decimal(32, 8)
+  high24h   Decimal? @db.Decimal(32, 18)
+  low24h    Decimal? @db.Decimal(32, 18)
+  change24h Decimal? @db.Decimal(32, 18)
+  signal    String?  // BUY, SELL, HOLD
+  confidence Decimal? @db.Decimal(5, 4)
+  timestamp DateTime @default(now())
+
+  token     Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+  @@index([tokenId, timestamp])
+  @@map("price_points")
+}
+
+model MarketSentiment {
+  id           String   @id @default(cuid())
+  tokenSymbol  String
+  sentiment    Decimal  @db.Decimal(5, 4) // 0-1 scale
+  fearGreedIndex Int?
+  trend        String   // bullish, bearish, neutral
+  volatility   String   // low, medium, high
+  rsi          Decimal? @db.Decimal(5, 2)
+  macd         String?
+  supportLevels Float[]  @db.Real
+  resistanceLevels Float[] @db.Real
+  reasoning    String?
+  source       String   @default("rehoboam")
+  timestamp    DateTime @default(now())
+
+  @@unique([tokenSymbol, timestamp])
+  @@map("market_sentiments")
+}
+
+// ==================== TRADING ====================
+
+model Strategy {
+  id             String   @id @default(cuid())
+  userId         String
+  name           String
+  description    String?
+  riskLevel      String   @default("moderate") // low, moderate, high
+  confidence     Decimal  @default(0.5) @db.Decimal(5, 4)
+  expectedReturn Decimal? @db.Decimal(5, 4)
+  timeframe      String?  // short, medium, long
+  networks       String[] // ["arbitrum", "optimism"]
+  parameters     Json?
+  isActive       Boolean  @default(true)
+  executions     Int      @default(0)
+  successRate    Decimal? @db.Decimal(5, 4)
+  reasoning      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades         Trade[]
+
+  @@map("strategies")
+}
+
+model Trade {
+  id            String   @id @default(cuid())
+  userId        String
+  walletId      String
+  strategyId    String?
+  tokenId       String
+  action        String   // BUY, SELL
+  amount        Decimal  @db.Decimal(32, 18)
+  price         Decimal  @db.Decimal(32, 18)
+  priceUsd      Decimal? @db.Decimal(32, 8)
+  network       String
+  slippage      Decimal  @db.Decimal(5, 4)
+  gasFee        Decimal? @db.Decimal(32, 18)
+  gasFeeUsd     Decimal? @db.Decimal(32, 8)
+  status        String   @default("pending") // pending, confirmed, failed, cancelled
+  txHash        String?
+  errorMessage  String?
+  executedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet        Wallet   @relation(fields: [walletId], references: [id])
+  strategy      Strategy? @relation(fields: [strategyId], references: [id])
+  token         Token    @relation(fields: [tokenId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([walletId, createdAt])
+  @@map("trades")
+}
+
+model Portfolio {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  totalValueUsd Decimal @default(0) @db.Decimal(32, 8)
+  dailyPnL     Decimal? @db.Decimal(32, 8)
+  dailyPnLPercent Decimal? @db.Decimal(5, 4)
+  totalPnL     Decimal? @db.Decimal(32, 8)
+  totalPnLPercent Decimal? @db.Decimal(5, 4)
+  updatedAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  positions    Position[]
+
+  @@map("portfolios")
+}
+
+model Position {
+  id           String   @id @default(cuid())
+  portfolioId  String
+  tokenSymbol  String
+  amount       Decimal  @db.Decimal(32, 18)
+  avgBuyPrice  Decimal  @db.Decimal(32, 18)
+  currentPrice Decimal? @db.Decimal(32, 18)
+  valueUsd     Decimal? @db.Decimal(32, 8)
+  unrealizedPnL Decimal? @db.Decimal(32, 8)
+  network      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  portfolio    Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@unique([portfolioId, tokenSymbol, network])
+  @@map("positions")
+}
+
+// ==================== ARBITRAGE ====================
+
+model ArbitrageOpportunity {
+  id              String   @id @default(cuid())
+  tokenId         String
+  sourceExchange  String
+  targetExchange  String
+  sourcePrice     Decimal  @db.Decimal(32, 18)
+  targetPrice     Decimal  @db.Decimal(32, 18)
+  priceDiff       Decimal  @db.Decimal(5, 4)
+  profitPotential Decimal  @db.Decimal(32, 18)
+  gasEstimate     Decimal  @db.Decimal(32, 18)
+  netProfit       Decimal  @db.Decimal(32, 18)
+  confidence      Decimal  @default(0.5) @db.Decimal(5, 4)
+  riskScore       Decimal  @default(0.5) @db.Decimal(5, 4)
+  status          String   @default("detected") // detected, evaluated, executed, expired
+  executedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  token           Token    @relation(fields: [tokenId], references: [id])
+
+  @@index([tokenId, createdAt])
+  @@map("arbitrage_opportunities")
+}
+
+model ArbitrageExecution {
+  id              String   @id @default(cuid())
+  opportunityId   String
+  buyTxHash       String?
+  sellTxHash      String?
+  buyAmount       Decimal  @db.Decimal(32, 18)
+  sellAmount      Decimal  @db.Decimal(32, 18)
+  buyPrice        Decimal  @db.Decimal(32, 18)
+  sellPrice       Decimal  @db.Decimal(32, 18)
+  profit          Decimal  @db.Decimal(32, 18)
+  gasUsed         Decimal  @db.Decimal(32, 18)
+  status          String   @default("pending")
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("arbitrage_executions")
+}
+
+// ==================== AI & HIVE_MIND ====================
+
+model AISignal {
+  id          String   @id @default(cuid())
+  source      String   // bo_signals_ai, openai, deepseek, gemini
+  tokenSymbol String
+  signal      String   // BUY, SELL, HOLD
+  confidence  Decimal  @db.Decimal(5, 4)
+  reasoning   String?
+  model       String?
+  metadata    Json?
+  validFrom   DateTime @default(now())
+  validTo     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([tokenSymbol, source, createdAt])
+  @@map("ai_signals")
+}
+
+model HiveMindState {
+  id              String   @id @default(cuid())
+  emotion         String   // calm, excited, anxious, analytical, etc.
+  sentiment       Decimal  @db.Decimal(5, 4)
+  marketOutlook   String   // bullish, bearish, neutral
+  riskAppetite    Decimal  @default(0.5) @db.Decimal(5, 4)
+  confidence      Decimal  @default(0.5) @db.Decimal(5, 4)
+  reasoning       String?
+  emotionalDrivers String[]
+  matrix          Int[]    // 5-element hive_mind matrix
+  createdAt       DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("hive_mind_states")
+}
+
+model HiveMindMemory {
+  id          String   @id @default(cuid())
+  eventType   String   // trade, market_move, user_action
+  eventData   Json
+  outcome     String?
+  learning    String?
+  importance  Decimal  @default(0.5) @db.Decimal(5, 4)
+  createdAt   DateTime @default(now())
+
+  @@index([eventType, createdAt])
+  @@map("hive_mind_memories")
+}
+
+// ==================== MCP & TOOLS ====================
+
+model MCPFunction {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  category    String   // processor, cognitive, data
+  parameters  Json
+  isActive    Boolean  @default(true)
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  calls       MCPFunctionCall[]
+
+  @@map("mcp_functions")
+}
+
+model MCPFunctionCall {
+  id          String   @id @default(cuid())
+  functionId  String
+  input       Json
+  output      Json?
+  duration    Int?     // milliseconds
+  success     Boolean  @default(true)
+  errorMessage String?
+  createdAt   DateTime @default(now())
+
+  function    MCPFunction @relation(fields: [functionId], references: [id])
+
+  @@index([functionId, createdAt])
+  @@map("mcp_function_calls")
+}
+
+// ==================== AI COMPANIONS ====================
+
+model AICompanion {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  personality String
+  expertise   String[]
+  model       String   @default("gpt-4.1-mini")
+  systemPrompt String?
+  isActive    Boolean  @default(true)
+  memory      String?  // JSON memory storage
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  conversations CompanionConversation[]
+
+  @@map("ai_companions")
+}
+
+model CompanionConversation {
+  id          String   @id @default(cuid())
+  companionId String
+  userId      String
+  messages    Json     // Array of {role, content, timestamp}
+  summary     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  companion   AICompanion @relation(fields: [companionId], references: [id], onDelete: Cascade)
+
+  @@index([companionId, createdAt])
+  @@map("companion_conversations")
+}
+
+// ==================== AUDIT & CONTRACT ====================
+
+model ContractAudit {
+  id          String   @id @default(cuid())
+  contractAddr String
+  network     String
+  auditTask   String   // reentrancy, gas_usage, security, etc.
+  result      Json
+  riskLevel   String?  // low, medium, high
+  findings    String?
+  model       String?
+  createdAt   DateTime @default(now())
+
+  @@unique([contractAddr, network, auditTask])
+  @@map("contract_audits")
+}

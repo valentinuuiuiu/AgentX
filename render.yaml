@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: rehoboam-payment-api
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: python test_payment_server.py
+    envVars:
+      - key: PORT
+        value: 5002
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PYTHON_VERSION
+        value: 3.11
+    healthCheckPath: /health
+    autoDeploy: true

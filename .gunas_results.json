@@ -1,0 +1,10 @@
+{
+  "accio_fixed": true,
+  "secrets_scanned": [
+    "NVIDIA API keys: 4 potential matches",
+    "OpenAI-style keys: 11 potential matches",
+    "GitHub tokens: 3 potential matches"
+  ],
+  "cache_built": true,
+  "timestamp": "2026-04-23T11:49:44.993505"
+}

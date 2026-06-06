@@ -1,0 +1,24 @@
+name: Remix Opus Connector
+url: https://your-domain.example.com
+public: false
+redirect_url: https://your-domain.example.com/_github_app_installed
+
+hook_attributes:
+  url: https://your-domain.example.com/webhook
+
+default_permissions:
+  contents: write
+  issues: write
+  pull_requests: write
+  metadata: read
+
+default_events:
+  - push
+  - pull_request
+  - issues
+
+# To install this app in your org or repo:
+# 1. Create a GitHub App using this manifest via https://github.com/settings/apps/new/manifest
+# 2. Set the webhook URL and private key on your app settings
+# 3. Install the app to target repositories/orgs
+# 4. Use the app credentials to authenticate API calls from your Remix connector service

@@ -1,0 +1,170 @@
+{
+  "name": "Rehoboam LLM Multi-Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rehoboam/query",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "rehoboam-query"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{$node[\"Webhook\"].json[\"body\"][\"agent_role\"]}}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "strategist",
+              "output": 1
+            },
+            {
+              "value2": "guardian",
+              "output": 2
+            },
+            {
+              "value2": "orchestrator",
+              "output": 3
+            }
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "name": "Role Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3010/v1/chat/completions",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "messages",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"messages\"]}}"
+            },
+            {
+              "name": "model",
+              "value": "claude-opus-4.6-remix"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Opus (Remix)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [700, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://llm.chutes.ai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$node[\"Webhook\"].json[\"body\"][\"chutes_key\"]}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "deepseek-ai/DeepSeek-V3"
+            },
+            {
+              "name": "messages",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"messages\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Chutes (DeepSeek)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:11434/api/chat",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "llama3.2"
+            },
+            {
+              "name": "messages",
+              "value": "={{$node[\"Webhook\"].json[\"body\"][\"messages\"]}}"
+            },
+            {
+              "name": "stream",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Ollama (Local)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [700, 500]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Role Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Role Switch": {
+      "main": [
+        [
+          {
+            "node": "Opus (Remix)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chutes (DeepSeek)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ollama (Local)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": "1"
+}

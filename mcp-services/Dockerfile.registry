@@ -1,0 +1,28 @@
+# Dockerfile for Rehoboam MCP Registry Service
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy registry-specific files
+COPY registry/package*.json ./
+COPY registry/npm-shrinkwrap.json ./
+
+# Install dependencies
+RUN npm ci --omit=dev
+
+# Copy registry application code
+COPY registry/. .
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Expose port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
+
+# Run the registry
+CMD ["node", "index.js"]

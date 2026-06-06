@@ -1,0 +1,67 @@
+name: 🏔️ Hermes Signal Bot — 24/7 Revenue Engine
+
+on:
+  schedule:
+    # Run every 15 minutes (the signal check interval)
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: 'Minimum tier to post (FREE, BASIC, PRO, VIP)'
+        required: false
+        default: 'FREE'
+
+jobs:
+  generate-and-post-signals:
+    runs-on: ubuntu-latest
+    name: Generate Convergence Signals
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp pandas numpy python-dotenv web3 httpx
+
+      - name: Run Hermes Signal Bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          BINANCE_API_KEY: ${{ secrets.BINANCE_API_KEY }}
+        run: |
+          echo "🏔️ Starting Hermes Signal Bot..."
+          python3 hermes_signal_bot.py --once --tier ${{ github.event.inputs.tier || 'FREE' }}
+
+      - name: Upload signal data
+        uses: actions/upload-artifact@v4
+        with:
+          name: signal-data-${{ github.run_id }}
+          path: signal_data/
+          retention-days: 7
+
+  health-check:
+    runs-on: ubuntu-latest
+    name: Service Health Check
+    needs: generate-and-post-signals
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check API health
+        run: |
+          echo "Checking Rehoboam API..."
+          curl -sf http://localhost:5002/api/status || echo "API not reachable (expected in CI)"
+      - name: Check signal data
+        run: |
+          if [ -f signal_data/signals.json ]; then
+            echo "✅ Signals file exists"
+            python3 -c "import json; d=json.load(open('signal_data/signals.json')); print(f'Total signals: {len(d)}')"
+          else
+            echo "⚠️ No signals generated yet"
+          fi

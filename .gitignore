@@ -1,0 +1,166 @@
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Testing
+.coverage
+.pytest_cache/
+.tox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Database
+*.db
+*.sqlite3
+
+# Others
+.sass-cache/
+.cache/
+
+# SECURITY - NEVER COMMIT THESE
+**/*private*
+**/*secret*
+**/*key*
+**/wallet*
+**/.secret
+**/keys/
+**/secrets/
+*.pem
+*.p12
+*.key
+*.keystore
+
+# Blockchain & Crypto
+**/broadcast/
+**/cache/
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+**/foundry.toml
+foundry.toml
+
+# Environment and Config with Secrets
+.env*
+config.json
+secrets.json
+private.json
+wallet.json
+keyfile.json
+
+# Deployment artifacts that might contain addresses
+deployment-*.json
+deploy-*.log
+transaction-*.json
+
+# Any file with "private" in name
+*private*
+*PRIVATE*
+*secret*
+*SECRET*
+
+/generated/prisma
+
+# Rehoboam Specific - CRITICAL SECURITY
+# Payment and wallet addresses (after you populate them)
+config/payment_addresses.json
+deployed_contracts.env
+contract_addresses.json
+
+# Database with user data and payments
+data/payments.db
+data/*.db
+data/*.sqlite
+
+# Exodus wallet data - NEVER COMMIT!
+.config/Exodus/
+*exodus.wallet*
+*.wallet
+*_wallet*
+
+# Any deployed contract info with your addresses
+deployed*.json
+deployed*.env
+
+# Backup files that might contain secrets
+*.bak
+*.backup
+*_backup*
+
+# Personal secret files
+appiss
+utils/accio_bridge/mock_data/

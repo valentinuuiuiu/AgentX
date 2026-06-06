@@ -1,0 +1,104 @@
+{
+  "name": "Rehoboam Trading & NFT Harvest",
+  "nodes": [
+    {
+      "parameters": {
+        "interval": 6,
+        "unit": "hours"
+      },
+      "name": "Cron Every 6H",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5002/status",
+        "options": {}
+      },
+      "name": "Check Rehoboam Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$node[\"Check Rehoboam Status\"].json[\"portfolio\"][\"total_value_usd\"]}}",
+              "operation": "larger",
+              "value2": 1000
+            }
+          ]
+        }
+      },
+      "name": "Profit > $1000?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3020/v1/generate",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "Golden Shiva Nataraj NFT - Prosperity Edition"
+            },
+            {
+              "name": "render",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Mint Reward NFT (Blender MCP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 200]
+    }
+  ],
+  "connections": {
+    "Cron Every 6H": {
+      "main": [
+        [
+          {
+            "node": "Check Rehoboam Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Rehoboam Status": {
+      "main": [
+        [
+          {
+            "node": "Profit > $1000?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profit > $1000?": {
+      "main": [
+        [
+          {
+            "node": "Mint Reward NFT (Blender MCP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": "2"
+}

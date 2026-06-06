@@ -1,0 +1,80 @@
+name: Build and Publish Figma MCP Docker Image
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install requirements & pytest
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          if [ -f utils/mcp-services/figma/requirements.txt ]; then
+            python -m pip install -r utils/mcp-services/figma/requirements.txt
+          else
+            echo "No figma requirements found, skipping install of extra deps."
+          fi
+      - name: Run tests (figma service) (if requirements present)
+        run: |
+          if [ -f utils/mcp-services/figma/requirements.txt ] && [ -n "$(ls utils/mcp-services/figma/test_*.py 2>/dev/null)" ]; then
+            cd utils/mcp-services/figma
+            pytest -q --maxfail=1
+          else
+            echo "No figma requirements or tests found, skipping tests."
+          fi
+
+  build-and-publish:
+    name: Build and publish Docker image to GHCR
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if Dockerfile exists
+        id: check_dockerfile
+        run: |
+          if [ -f utils/mcp-services/figma/Dockerfile ]; then
+            echo "BUILD_FIGMA=true" >> $GITHUB_ENV
+          else
+            echo "BUILD_FIGMA=false" >> $GITHUB_ENV
+          fi
+
+      - name: Build and push image
+        if: env.BUILD_FIGMA == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./utils/mcp-services/figma
+          file: ./utils/mcp-services/figma/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/figma-mcp:latest
+            ghcr.io/${{ github.repository_owner }}/figma-mcp:${{ github.sha }}

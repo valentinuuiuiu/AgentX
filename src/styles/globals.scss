@@ -1,0 +1,239 @@
+@import '@styles/variables.scss';
+@import '@styles/mixins.scss';
+
+// ============================================================================
+// GLOBAL STYLES
+// ============================================================================
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  line-height: 1.6;
+  color: $color-text-primary;
+  background: $color-background;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ============================================================================
+// TYPOGRAPHY
+// ============================================================================
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: $font-weight-semibold;
+  line-height: 1.3;
+  color: $color-text-primary;
+}
+
+h1 { @include heading-1; }
+h2 { @include heading-2; }
+h3 { @include heading-3; }
+h4 { @include heading-4; }
+
+p { @include body-text; }
+
+// ============================================================================
+// SCROLLBAR STYLING
+// ============================================================================
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $color-surface;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $color-surface-lighter;
+  border-radius: $radius-full;
+
+  &:hover {
+    background: $color-border-light;
+  }
+}
+
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+// ============================================================================
+// UTILITY CLASSES
+// ============================================================================
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.loading-spinner {
+  @include loading-spinner;
+}
+
+.trading-profit {
+  @include trading-profit;
+}
+
+.trading-loss {
+  @include trading-loss;
+}
+
+.price-display {
+  @include price-display;
+}
+
+.status-indicator {
+  @include status-indicator($color-info);
+}
+
+// ============================================================================
+// COMPONENT SPECIFIC STYLES
+// ============================================================================
+
+// Trading Dashboard Specific
+.trading-grid {
+  display: grid;
+  gap: $spacing-4;
+
+  @include respond-to(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to(lg) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.trading-card {
+  @include card;
+  
+  &.compact {
+    @include card-compact;
+  }
+}
+
+.trading-header {
+  @include flex-between;
+  margin-bottom: $spacing-6;
+}
+
+.trading-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $spacing-4;
+  margin-bottom: $spacing-6;
+}
+
+.trading-chart {
+  height: 300px;
+  background: $color-surface;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border;
+}
+
+// Navigation
+.main-nav {
+  @include flex-between;
+  padding: $spacing-4 $spacing-6;
+  background: $color-surface;
+  border-bottom: 1px solid $color-border;
+  position: sticky;
+  top: 0;
+  z-index: $z-index-sticky;
+}
+
+.nav-links {
+  @include flex-start;
+  gap: $spacing-2;
+  list-style: none;
+
+  a {
+    padding: $spacing-2 $spacing-4;
+    border-radius: $radius-md;
+    text-decoration: none;
+    color: $color-text-secondary;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: $color-text-primary;
+      background: $color-surface-light;
+    }
+
+    &.active {
+      color: $color-primary;
+      background: rgba($color-primary, 0.1);
+    }
+  }
+}
+
+// Forms
+.form-group {
+  margin-bottom: $spacing-4;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-2;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-secondary;
+  }
+
+  input, select, textarea {
+    @include input-base;
+  }
+}
+
+// Responsive utilities
+.container {
+  @include container;
+}
+
+.container-fluid {
+  @include container-fluid;
+}
+
+// Hide on mobile
+.hide-mobile {
+  @include respond-to(mobile) {
+    display: none !important;
+  }
+}
+
+// Show only on mobile
+.show-mobile {
+  display: none;
+  
+  @include respond-to(mobile) {
+    display: block !important;
+  }
+}

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rehoboam Signals — Multi-Source Convergence Trading</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+        }
+        .hero h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        .hero p { font-size: 1.3rem; color: #888; max-width: 600px; margin: 0 auto 30px; }
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.3s;
+        }
+        .cta-button:hover { transform: scale(1.05); }
+        
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            padding: 60px 20px;
+            background: #111118;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 30px;
+            background: #1a1a2e;
+            border-radius: 15px;
+            border: 1px solid #2a2a3e;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .stat-label { color: #888; margin-top: 10px; }
+        
+        /* Features */
+        .features { padding: 80px 20px; }
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .feature-card {
+            padding: 30px;
+            background: #111118;
+            border-radius: 15px;
+            border: 1px solid #2a2a3e;
+        }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 15px; }
+        .feature-card h3 { font-size: 1.3rem; margin-bottom: 10px; color: #00d4ff; }
+        .feature-card p { color: #888; }
+        
+        /* Pricing */
+        .pricing { padding: 80px 20px; background: #111118; }
+        .pricing h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+        }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .pricing-card {
+            padding: 40px 30px;
+            background: #1a1a2e;
+            border-radius: 20px;
+            border: 2px solid #2a2a3e;
+            text-align: center;
+            position: relative;
+        }
+        .pricing-card.popular {
+            border-color: #00d4ff;
+            transform: scale(1.05);
+        }
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00d4ff;
+            color: #0a0a0f;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 10px; }
+        .price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #00d4ff;
+            margin: 20px 0;
+        }
+        .price span { font-size: 1rem; color: #888; }
+        .pricing-card ul {
+            list-style: none;
+            text-align: left;
+            margin: 30px 0;
+        }
+        .pricing-card ul li {
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2a3e;
+            color: #ccc;
+        }
+        .pricing-card ul li::before {
+            content: "✓ ";
+            color: #00d4ff;
+            font-weight: bold;
+        }
+        
+        /* Payment */
+        .payment { padding: 60px 20px; text-align: center; }
+        .payment h2 { font-size: 2rem; margin-bottom: 30px; }
+        .wallet-address {
+            background: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px auto;
+            max-width: 500px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .wallet-label { color: #888; margin-bottom: 5px; }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px;
+            background: #0a0a0f;
+            color: #666;
+            border-top: 1px solid #1a1a2e;
+        }
+        footer a { color: #00d4ff; text-decoration: none; }
+        
+        /* Live Signal */
+        .live-signal {
+            background: #1a1a2e;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px auto;
+            max-width: 600px;
+            border: 2px solid #00d4ff;
+        }
+        .live-signal h3 { color: #00d4ff; margin-bottom: 15px; }
+        .signal-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2a3e;
+        }
+        .signal-label { color: #888; }
+        .signal-value { font-weight: bold; }
+        .buy { color: #00ff88; }
+        .sell { color: #ff4444; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="container">
+            <h1>🏔️ Rehoboam Signals</h1>
+            <p>Multi-source convergence trading signals. We cross-reference Binance, Coinbase, and Chainlink oracles before alerting. No more false signals.</p>
+            <a href="#pricing" class="cta-button">Get Started — $0 Free Tier</a>
+        </div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number">3</div>
+            <div class="stat-label">Data Sources</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">85%</div>
+            <div class="stat-label">Max Convergence Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">2.5:1</div>
+            <div class="stat-label">Risk/Reward Ratio</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Automated Monitoring</div>
+        </div>
+    </div>
+    
+    <div class="features">
+        <div class="container">
+            <h2>Why Traders Choose Us</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔗</div>
+                    <h3>Multi-Source Convergence</h3>
+                    <p>Signals only fire when Binance, Coinbase, AND Chainlink oracles agree. Single-source bots can't match this accuracy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Risk Management Built-In</h3>
+                    <p>Every signal includes stop loss, take profit targets, position sizing, and max loss calculation. Trade with discipline.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Arbitrage Detection</h3>
+                    <p>Spot price divergences between exchanges before they close. Flash opportunities delivered in real-time.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Performance Tracking</h3>
+                    <p>SQLite database tracks every signal. Win rate, P&L, Sharpe ratio — all calculated automatically.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Telegram Alerts</h3>
+                    <p>Get signals instantly on Telegram with full risk parameters. No login required, no app to install.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🐋</div>
+                    <h3>Whale Tracking</h3>
+                    <p>VIP tier includes on-chain whale movement detection. See what the smart money is doing before the crowd.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="pricing" id="pricing">
+        <div class="container">
+            <h2>Simple Pricing</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>🆓 Free</h3>
+                    <div class="price">$0<span>/month</span></div>
+                    <ul>
+                        <li>1 signal per day (1h delay)</li>
+                        <li>Basic technical analysis</li>
+                        <li>Email alerts</li>
+                        <li>Community access</li>
+                    </ul>
+                    <a href="https://t.me/web4_bot_nobot" class="cta-button">Start Free</a>
+                </div>
+                
+                <div class="pricing-card popular">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <h3>🟠 Pro</h3>
+                    <div class="price">$49<span>/month</span></div>
+                    <ul>
+                        <li>Unlimited real-time signals</li>
+                        <li>Full 3-source convergence</li>
+                        <li>Arbitrage detection</li>
+                        <li>Risk management included</li>
+                        <li>Telegram alerts</li>
+                        <li>Portfolio tracking</li>
+                    </ul>
+                    <a href="#payment" class="cta-button">Get Pro</a>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3>💎 VIP</h3>
+                    <div class="price">$149<span>/month</span></div>
+                    <ul>
+                        <li>Everything in Pro</li>
+                        <li>Whale tracking</li>
+                        <li>Custom pair monitoring</li>
+                        <li>1-on-1 strategy calls</li>
+                        <li>White-label bot setup</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="#payment" class="cta-button">Get VIP</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="payment" id="payment">
+        <div class="container">
+            <h2>💳 Pay with Crypto</h2>
+            <p style="color: #888; margin-bottom: 30px;">Send payment, then DM @web4_bot_nobot with your TX hash to activate.</p>
+            
+            <div class="wallet-address">
+                <div class="wallet-label">ETH / USDC (ERC-20)</div>
+                0xa4660Bf26BF89fe073d42E7A4945a3Df6Bd3c407
+            </div>
+            
+            <div class="wallet-address">
+                <div class="wallet-label">BTC</div>
+                bc1q... (generate with your wallet)
+            </div>
+            
+            <p style="margin-top: 30px; color: #888;">
+                Or pay via <a href="https://paypal.me/your-link" style="color: #00d4ff;">PayPal</a> | 
+                <a href="https://t.me/web4_bot_nobot" style="color: #00d4ff;">Contact on Telegram</a>
+            </p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>🏔️ Rehoboam Signals — Powered by Multi-Source Convergence</p>
+        <p style="margin-top: 10px;">
+            <a href="https://t.me/web4_bot_nobot">Telegram</a> | 
+            <a href="#">Twitter</a> | 
+            <a href="#">GitHub</a>
+        </p>
+        <p style="margin-top: 20px; font-size: 0.9rem;">
+            Disclaimer: Not financial advice. Trade at your own risk. Past performance does not guarantee future results.
+        </p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-04-23T18:10:21.921573",
+  "stats": {
+    "agents_started": 200,
+    "agents_healthy": 200,
+    "tasks_dispatched": 8,
+    "tasks_completed": 7,
+    "tasks_failed": 1,
+    "start_time": "2026-04-23T18:10:09.006384"
+  },
+  "agents_total": 200,
+  "agents_healthy": 200
+}

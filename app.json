@@ -1,0 +1,39 @@
+{
+  "name": "Rehoboam AI Payment System",
+  "description": "Crypto trading intelligence powered by hive_mind with direct crypto payments",
+  "repository": "https://github.com/valentinuuiuiu/clean_rehoboam_project",
+  "logo": "https://raw.githubusercontent.com/valentinuuiuiu/clean_rehoboam_project/main/public/logo.png",
+  "keywords": [
+    "crypto",
+    "ai",
+    "trading",
+    "blockchain",
+    "payments",
+    "fastapi",
+    "python"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "env": {
+    "PORT": {
+      "description": "Port for the web server",
+      "value": "5002"
+    },
+    "LOG_LEVEL": {
+      "description": "Logging level",
+      "value": "INFO"
+    }
+  },
+  "scripts": {
+    "postdeploy": "echo 'Rehoboam deployed successfully!'"
+  }
+}
