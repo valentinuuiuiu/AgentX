@@ -4,6 +4,7 @@
 Direct integration with NVIDIA's OpenAI-compatible API endpoint.
 """
 
+import os
 from openai import OpenAI
 
 def test_nvidia_endpoint():
@@ -13,7 +14,7 @@ def test_nvidia_endpoint():
     # Initialize client with NVIDIA endpoint
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
-        api_key="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"
+        api_key=os.environ.get("NVIDIA_NIM_API_KEY")
     )
     
     # Test completion with minimax model
@@ -71,7 +72,7 @@ def configure_nvidia_for_babyagi():
     # Configure NVIDIA endpoint
     nvidia_config = {
         "base_url": "https://integrate.api.nvidia.com/v1",
-        "api_key": "nvapi-rhOOyATtggbGovkiXgE1kZXWn3VkSev0Hzms3d0_1m0thqUw极速赛车开奖直播-【🔥官网:ee1499.com🔥】-极速赛车开奖直播-极速赛车开奖直播开奖记录-澳洲极速赛车开奖直播vz3hGzYZ56kJV1J7"
+        "api_key": os.environ.get("NVIDIA_NIM_API_KEY")
     }
     
     # Register NVIDIA provider
