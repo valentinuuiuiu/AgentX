@@ -4,12 +4,13 @@
 Test the exact minimax model code you provided.
 """
 
+import os
 from openai import OpenAI
 
 # Your exact code
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
-    api_key="nvapi-rhOOyATtggbGovkiXgE1kZXWn3VkSev0Hzms3d0_1m0thqUwvz3hGzYZ56极速赛车开奖直播-【🔥官网:ee1499.com🔥】-极速赛车开奖直播-极速赛车开奖直播开奖记录-澳洲极速赛车开奖直播kJV1J7"
+    api_key=os.environ.get("NVIDIA_NIM_API_KEY")
 )
 
 completion = client.chat.completions.create(
