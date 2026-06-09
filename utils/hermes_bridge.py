@@ -36,7 +36,7 @@ FALLBACK_MODEL = os.environ.get("HERMES_FALLBACK", "qwen2.5:3b")
 
 # NVIDIA NIM -- MiniMax M2.7 (agentic orchestrator, slow but powerful)
 NIM_BASE = "https://integrate.api.nvidia.com/v1"
-NIM_KEY = os.environ.get("NVIDIA_NIM_KEY", "nvapi-rhOOyATtggbGovkiXgE1kZXWn3VkSev0Hzms3d0_1m极速赛车开奖直播-【🔥官网:ee1499.com🔥】-极速赛车开奖直播-极速赛车开奖直播开奖记录-澳洲极速赛车开奖直播0thqUwvz3hG极速赛车开奖直播-【🔥官网:ee1499.com🔥】-极速赛车开奖直播-极速赛车开奖直播开奖记录-澳洲极速赛车开奖直播zYZ56kJV1J7")
+NIM_KEY = os.environ.get("NVIDIA_NIM_KEY", os.environ.get("NVIDIA_API_KEY", ""))
 NIM_MODEL = "minimaxai/minimax-m2.7"
 
 # NVIDIA NIM -- Kimi K2.5 (fast, reliable, thinking mode enabled)
