@@ -38,7 +38,8 @@ export function WalletView() {
         if (provider.isMetaMask) {
           await provider.request({ method: 'eth_requestAccounts' });
         } else {
-          throw new Error('MetaMask is not installed');
+          console.warn('EIP-1193 provider detected, but isMetaMask flag is false. Proceeding anyway.');
+          await provider.request({ method: 'eth_requestAccounts' });
         }
       } else if (providerName === 'Talisman' && (window as any).talismanEth) {
         provider = (window as any).talismanEth;
