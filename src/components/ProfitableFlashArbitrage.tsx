@@ -113,8 +113,13 @@ const ProfitableFlashArbitrage: React.FC = () => {
           
           // Get balance
           const provider = new ethers.BrowserProvider(window.ethereum);
-          const balanceWei = await provider.getBalance(accounts[0]);
-          setBalance(ethers.formatEther(balanceWei));
+          try {
+            const balanceWei = await provider.getBalance(accounts[0]);
+            setBalance(ethers.formatEther(balanceWei));
+          } catch (err) {
+            console.error('Error fetching balance:', err);
+            setBalance('0');
+          }
           
           // Generate initial opportunities
           setOpportunities(generateRealOpportunities());
@@ -209,7 +214,7 @@ const ProfitableFlashArbitrage: React.FC = () => {
               <span className="text-green-300 font-semibold">Wallet Connected - Ready to Execute</span>
             </div>
             <p className="text-sm text-gray-300">
-              Address: {userAddress.slice(0, 6)}...{userAddress.slice(-4)} • Balance: {parseFloat(balance).toFixed(4)} ETH
+              Address: {userAddress.slice(0, 6)}...{userAddress.slice(-4)} • Balance: {!isNaN(parseFloat(balance)) ? parseFloat(balance).toFixed(4) : '0.0000'} ETH
             </p>
           </div>
         )}

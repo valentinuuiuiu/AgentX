@@ -85,7 +85,9 @@ export async function fetchSepoliaBalances(provider, walletAddress) {
       balance: ethers.formatEther(ethBalance),
       decimals: 18,
     });
-  } catch (e) {}
+  } catch (e) {
+    console.error('Error fetching ETH balance in SepoliaService:', e);
+  }
 
   return balances;
 }
