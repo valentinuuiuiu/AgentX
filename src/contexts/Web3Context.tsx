@@ -70,12 +70,8 @@ export function Web3ContextProvider({ children }: { children: React.ReactNode })
   const updateBalance = async (address: string, currentProvider: BrowserProvider | JsonRpcProvider) => {
     try {
       const balanceWei = await currentProvider.getBalance(address);
-      if (balanceWei !== null && balanceWei !== undefined) {
-        const balanceEth = ethers.formatEther(balanceWei);
-        setBalance(balanceEth);
-      } else {
-        setBalance('0');
-      }
+      const balanceEth = ethers.formatEther(balanceWei);
+      setBalance(balanceEth);
     } catch (error) {
       console.error('Error fetching balance:', error);
       setBalance('0');
