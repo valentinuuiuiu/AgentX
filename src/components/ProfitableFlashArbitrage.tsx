@@ -113,8 +113,19 @@ const ProfitableFlashArbitrage: React.FC = () => {
           
           // Get balance
           const provider = new ethers.BrowserProvider(window.ethereum);
-          const balanceWei = await provider.getBalance(accounts[0]);
-          setBalance(ethers.formatEther(balanceWei));
+          let balanceFormatted = '0';
+          try {
+            const balanceWei = await provider.getBalance(accounts[0]);
+            if (balanceWei != null) {
+              const formatted = ethers.formatEther(balanceWei);
+              if (!isNaN(parseFloat(formatted))) {
+                balanceFormatted = formatted;
+              }
+            }
+          } catch (err) {
+            console.warn('Failed to fetch balance, using fallback.', err);
+          }
+          setBalance(balanceFormatted);
           
           // Generate initial opportunities
           setOpportunities(generateRealOpportunities());
