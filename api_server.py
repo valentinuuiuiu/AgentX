@@ -1,6 +1,7 @@
+from pydantic import BaseModel
 """
 Rehoboam API Server v3.0 -- Hermes Bridge Integrated
-=====================================================
+==============================================
 Sovereign AI layer: GLM-5.1 (fast) + MiniMax M2.7 (orchestrator) + Ising Calibration (reasoning)
 Three Filters: Dhumavati Maa (Love, Sincerity, Freedom)
 Flash Loan Scanner: Zero capital, DexScreener prices
@@ -22,9 +23,9 @@ from fastapi.staticfiles import StaticFiles
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("RehoboamAPI")
 
-# ============================================================
+# =====================================================
 # LAZY SERVICES -- server boots even with missing deps
-# ============================================================
+# =====================================================
 crew = None
 agent_orchestrator = None
 vetal = None
@@ -97,9 +98,9 @@ async def lifespan(app):
     logger.info("REHOBOAM shutting down...")
 
 
-# ============================================================
+# =====================================================
 # APP
-# ============================================================
+# =====================================================
 app = FastAPI(
     title="Rehoboam 3.0 -- Hermes-Powered Web3 Agent System",
     description="Multi-agent AI trading. GLM-5.1 consciousness, MiniMax M2.7 orchestration, Ising reasoning, Three Filters gate, flash loan arbitrage.",
@@ -110,9 +111,9 @@ app = FastAPI(
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
-# ============================================================
+# =====================================================
 # ROOT
-# ============================================================
+# =====================================================
 @app.get("/")
 async def root():
     return {
@@ -177,9 +178,9 @@ async def get_status():
     return stats
 
 
-# ============================================================
+# =====================================================
 # HERMES BRIDGE ENDPOINTS
-# ============================================================
+# =====================================================
 @app.get("/api/hermes/status")
 async def hermes_status():
     if not hermes_bridge:
@@ -235,9 +236,9 @@ async def hermes_orchestrate(request: Dict[str, Any] = Body(...)):
     return await hermes_bridge.orchestrate(task, context)
 
 
-# ============================================================
+# =====================================================
 # FLASH LOAN ENDPOINTS
-# ============================================================
+# =====================================================
 @app.post("/api/flash-scan")
 async def flash_scan_token(request: Dict[str, Any] = Body(...)):
     """Flash loan arbitrage scan. Zero capital needed."""
@@ -259,9 +260,9 @@ async def flash_scan_all():
     return await flash_scanner.scan_all_tokens()
 
 
-# ============================================================
+# =====================================================
 # ON-CHAIN CHAINLINK ENDPOINTS
-# ============================================================
+# =====================================================
 @app.get("/api/onchain/price/{pair}")
 async def onchain_price(pair: str = "ETH/USD"):
     """Real on-chain Chainlink price via Alchemy. No mocks, no APIs -- raw blockchain."""
@@ -281,9 +282,9 @@ async def onchain_all_prices():
     return await hermes_bridge.get_all_prices()
 
 
-# ============================================================
+# =====================================================
 # VAIRAGYA SHIELD ENDPOINTS
-# ============================================================
+# =====================================================
 @app.get("/api/shield/status")
 async def shield_status():
     """Vairagya Shield status and audit integrity."""
@@ -359,9 +360,9 @@ async def shield_consensus(request: Dict[str, Any] = Body(...)):
     return result
 
 
-# ============================================================
+# =====================================================
 # TRADING AGENTS (Multi-Agent LLM Trading)
-# ============================================================
+# =====================================================
 import httpx
 
 TRADING_AGENTS_URL = os.environ.get("MCP_TRADING_AGENTS_URL", "http://mcp-trading-agents:3700")
@@ -431,9 +432,9 @@ async def trading_agents_health():
         return {"status": "offline", "tradingagents_available": False}
 
 
-# ============================================================
+# =====================================================
 # UNIFIED AI ROUTER
-# ============================================================
+# =====================================================
 
 def _get_ai_router():
     """Get AIRouter instance, returns None if unavailable."""
@@ -489,9 +490,9 @@ async def ai_quick(request: Dict[str, Any] = Body(...)):
     return {"content": content, "provider": "auto"}
 
 
-# ============================================================
+# =====================================================
 # REMIX IDE INTEGRATION
-# ============================================================
+# =====================================================
 import subprocess
 
 REMIX_PROJECT_ROOT = os.environ.get("REHOBOAM_PROJECT_ROOT", os.path.dirname(os.path.abspath(__file__)))
@@ -590,9 +591,9 @@ async def remix_deploy(request: Dict[str, Any] = Body(...)):
         raise HTTPException(504, "Deployment timed out")
 
 
-# ============================================================
+# =====================================================
 # WEBSOCKET
-# ============================================================
+# =====================================================
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -617,9 +618,9 @@ async def websocket_endpoint(websocket: WebSocket):
         active_connections.remove(websocket)
 
 
-# ============================================================
+# =====================================================
 # PROMETHEUS METRICS
-# ============================================================
+# =====================================================
 from fastapi.responses import PlainTextResponse
 import time
 
@@ -639,7 +640,7 @@ async def metrics_middleware(request, call_next):
     METRICS["requests_by_path"][path] = METRICS["requests_by_path"].get(path, 0) + 1
     return response
 
-<<<<<<< HEAD
+
 @app.get("/metrics", response_class=PlainTextResponse)
 async def metrics():
     """Prometheus-compatible metrics endpoint."""
@@ -672,14 +673,14 @@ async def metrics():
     return "\n".join(lines)
 
 
-# ============================================================
+# =====================================================
 # STATIC + RUN
-# ============================================================
+# =====================================================
 try:
     app.mount("/static", StaticFiles(directory="src"), name="static")
 except Exception:
     pass
-=======
+
     # General exception for the whole endpoint
     # try/except block for the whole function body should be here
     # but the prompt implies individual error handling for MCP calls and then local fallbacks.
@@ -965,9 +966,9 @@ async def stop_arbitrage_monitoring():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
+# =====================================================================
 # CONSCIOUS ARBITRAGE ENDPOINTS - Rehoboam AI-Powered Decision Making
-# ============================================================================
+# =====================================================================
 
 
 @app.get("/api/arbitrage/conscious/opportunities")
@@ -1321,9 +1322,9 @@ async def get_consciousness_level():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
+# =====================================================================
 # REHOBOAM UNIFIED PIPELINE ENDPOINTS - Agent ↔ Bot Communication
-# ============================================================================
+# =====================================================================
 
 
 @app.get("/api/rehoboam/pipeline/status")
@@ -3143,9 +3144,9 @@ async def get_global_market_stats():
         logger.error(f"Error in get_global_market_stats: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# ============================================================
+# =====================================================
 # AGENT CHAT ENDPOINT — Real AI backend with agent routing
-# ============================================================
+# =====================================================
 
 class ChatRequest(BaseModel):
     message: str
@@ -3259,9 +3260,9 @@ async def agent_chat(request: ChatRequest):
         return {"error": f"Agent {request.agent} connection failed: {str(e)[:200]}"}
 
 
-# ============================================================
+# =====================================================
 # ALPHA INTEL ENDPOINT — Yahoo Finance news + Fear & Greed
-# ============================================================
+# =====================================================
 
 @app.get("/api/alpha-intel", tags=["Alpha Intel"])
 async def get_alpha_intel():
@@ -3382,7 +3383,7 @@ async def general_exception_handler(request, exc):
         },
     )
 
->>>>>>> b1dc557 (feat: expand to 7 agents with real API wiring + Alpha Intel plugin)
+
 
 if __name__ == "__main__":
     import uvicorn
