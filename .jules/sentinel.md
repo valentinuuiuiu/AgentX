@@ -1,0 +1,4 @@
+## 2024-05-18 - Hardcoded Infura API Key
+**Vulnerability:** A hardcoded Infura API key (a hardcoded 32-character hex string) was being used as a fallback if `VITE_INFURA_API_KEY` was missing from the environment. This key was present in `src/contexts/Web3Context.tsx` and `src/services/tradingAPIService.ts`.
+**Learning:** Hardcoding API keys, even as fallbacks, leaks secrets into the version control system and the client-side bundle. This specific instance was particularly dangerous because it was exposed in the frontend codebase.
+**Prevention:** Always rely strictly on environment variables (`import.meta.env` for Vite frontends) for sensitive configuration. Do not provide dummy strings or fallback values in the codebase that might accidentally be a real secret. Implement robust error handling or degraded functionality when keys are missing rather than attempting to provide a hardcoded default.
