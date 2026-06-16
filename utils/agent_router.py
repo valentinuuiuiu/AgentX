@@ -74,6 +74,7 @@ AGENT_MODELS = {
     "orchestrator": "minimax-m2.7:cloud",
     "strategist":   "gemini-3-flash-preview:latest",
     "guardian":     "kimi-k2.5:cloud",
+    "knight":       "mimo-v2.5-pro",
     "worker":       "llama3.2:latest",
 }
 

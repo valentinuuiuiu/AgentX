@@ -45,7 +45,6 @@ export function Web3ContextProvider({ children }: { children: React.ReactNode })
   const [balance, setBalance] = useState<string | null>(null);
   const { addNotification } = useNotification();
 
-  // Initialize Infura provider on component mount
   useEffect(() => {
     const infuraKey = import.meta.env.VITE_INFURA_API_KEY || 'ddd78bc17de648b2a89acf424fbfa8ed';
     if (infuraKey) {
@@ -78,14 +77,15 @@ export function Web3ContextProvider({ children }: { children: React.ReactNode })
   };
 
   const connectWallet = async () => {
-    if (!window.ethereum) {
-      addNotification('error', 'Please install MetaMask to use this feature');
+    const rawProvider = (window as any).ethereum || (window as any).talismanEth;
+    if (!rawProvider) {
+      addNotification('error', 'Please install a Web3 wallet (MetaMask, Talisman, etc)');
       return;
     }
 
     try {
-      const browserProvider = new BrowserProvider(window.ethereum);
-      const accounts = await browserProvider.send('eth_requestAccounts', []);
+      const browserProvider = new BrowserProvider(rawProvider);
+      const accounts = await rawProvider.request({ method: 'eth_requestAccounts' });
       const network = await browserProvider.getNetwork();
       
       setProvider(browserProvider);
@@ -110,13 +110,14 @@ export function Web3ContextProvider({ children }: { children: React.ReactNode })
   };
 
   const switchNetwork = async (targetChainId: number) => {
-    if (!window.ethereum) {
-      addNotification('error', 'MetaMask not found');
+    const rawProvider = (window as any).ethereum || (window as any).talismanEth;
+    if (!rawProvider) {
+      addNotification('error', 'Web3 provider not found');
       return;
     }
 
     try {
-      await window.ethereum.request({
+      await rawProvider.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: `0x${targetChainId.toString(16)}` }],
       });
@@ -128,46 +129,51 @@ export function Web3ContextProvider({ children }: { children: React.ReactNode })
   };
 
   useEffect(() => {
-    if (window.ethereum) {
+    const rawProvider = (window as any).ethereum || (window as any).talismanEth;
+    if (rawProvider) {
       const handleAccountsChanged = (accounts: string[]) => {
         if (accounts.length === 0) {
           disconnectWallet();
         } else {
           setAccount(accounts[0]);
-          if (provider) {
+          if (provider instanceof BrowserProvider) {
             updateBalance(accounts[0], provider);
           }
           addNotification('info', 'Account changed');
         }
       };
 
-      const handleChainChanged = (chainId: string) => {
-        setChainId(parseInt(chainId, 16));
+      const handleChainChanged = (chainIdStr: string) => {
+        setChainId(parseInt(chainIdStr, 16));
         addNotification('info', 'Network changed');
       };
 
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
+      if (rawProvider.on) {
+        rawProvider.on('accountsChanged', handleAccountsChanged);
+        rawProvider.on('chainChanged', handleChainChanged);
+      }
 
       // Check if already connected
-      window.ethereum.request({ method: 'eth_accounts' })
-        .then((accounts: string[]) => {
-          if (accounts.length > 0) {
-            const browserProvider = new BrowserProvider(window.ethereum);
-            browserProvider.getNetwork().then(network => {
-              setProvider(browserProvider);
-              setAccount(accounts[0]);
-              setChainId(Number(network.chainId));
-              updateBalance(accounts[0], browserProvider);
-            });
-          }
-        })
-        .catch(console.error);
+      if (rawProvider.request) {
+        rawProvider.request({ method: 'eth_accounts' })
+          .then((accounts: string[]) => {
+            if (accounts.length > 0) {
+              const browserProvider = new BrowserProvider(rawProvider);
+              browserProvider.getNetwork().then(network => {
+                setProvider(browserProvider);
+                setAccount(accounts[0]);
+                setChainId(Number(network.chainId));
+                updateBalance(accounts[0], browserProvider);
+              });
+            }
+          })
+          .catch(console.error);
+      }
 
       return () => {
-        if (window.ethereum) {
-          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-          window.ethereum.removeListener('chainChanged', handleChainChanged);
+        if (rawProvider.removeListener) {
+          rawProvider.removeListener('accountsChanged', handleAccountsChanged);
+          rawProvider.removeListener('chainChanged', handleChainChanged);
         }
       };
     }

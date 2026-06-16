@@ -1,0 +1,50 @@
+from pydantic import BaseModel
+"""
+Rehoboam API Server v3.0 -- Hermes Bridge Integrated
+==============================================
+Sovereign AI layer: GLM-5.1 (fast) + MiniMax M2.7 (orchestrator) + Ising Calibration (reasoning)
+Three Filters: Dhumavati Maa (Love, Sincerity, Freedom)
+Flash Loan Scanner: Zero capital, DexScreener prices
+n8n Workflows: Podman-based subagent orchestration
+"""
+
+import os
+import json
+import logging
+import asyncio
+try:
+    from utils.ai_router import AIRouter
+except ImportError:
+    AIRouter = None
+PriceFeedService = None
+try:
+TradingAgent = None
+    from utils.price_feed_service import PriceFeedService
+    from trading_agent import TradingAgent
+from datetime import datetime
+import httpx
+from typing import Dict, Any, Optional
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger("RehoboamAPI")
+
+# =====================================================
+# LAZY SERVICES -- server boots even with missing deps
+# =====================================================
+crew = None
+agent_orchestrator = None
+vetal = None
+contract_bridge_ref = None
+mcp_specialist = None
+hermes_bridge = None
+flash_scanner = None
+active_connections = []
+
+
+def _lazy_imports():
+    """Load heavy services. Does not crash on missing deps."""

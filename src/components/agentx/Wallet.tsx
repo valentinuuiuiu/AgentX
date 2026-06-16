@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { ArrowRightLeft, ShieldCheck, Key, AlertCircle, Link, Hexagon } from 'lucide-react';
+import { ArrowRightLeft, ShieldCheck, Key, AlertCircle, Link, Hexagon, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function WalletView() {
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [isConnected, setIsConnected] = useState(false);
-  const [walletType, setWalletType] = useState<'CEX' | 'MetaMask' | 'Talisman' | null>(null);
+  const [walletType, setWalletType] = useState<'CEX' | 'Web3' | null>(null);
 
   const [orderAsset, setOrderAsset] = useState('SPY');
   const [orderQuantity, setOrderQuantity] = useState('');
@@ -30,34 +30,19 @@ export function WalletView() {
     }
   };
 
-  const connectWeb3Wallet = async (providerName: 'MetaMask' | 'Talisman') => {
+  const connectWeb3Wallet = async () => {
     try {
-      let provider = null;
-      if (providerName === 'MetaMask' && (window as any).ethereum) {
-        provider = (window as any).ethereum;
-        if (!provider.isMetaMask) {
-          console.warn('Provider is not explicitly flagged as MetaMask (isMetaMask is false/undefined), continuing anyway...');
-        }
-        await provider.request({ method: 'eth_requestAccounts' });
-      } else if (providerName === 'Talisman' && (window as any).talismanEth) {
-        provider = (window as any).talismanEth;
-        await provider.request({ method: 'eth_requestAccounts' });
-      } else {
-        throw new Error(`${providerName} extension not found in browser.`);
+      const provider = (window as any).ethereum || (window as any).talismanEth;
+      if (!provider) {
+        throw new Error('No Web3 wallet extension found (MetaMask, Talisman, or Generic).');
       }
 
+      await provider.request({ method: 'eth_requestAccounts' });
       setIsConnected(true);
-      setWalletType(providerName);
-      toast.success(`${providerName} Wallet connected successfully! You can now execute on-chain zero-fee routes.`);
+      setWalletType('Web3');
+      toast.success('Web3 Wallet connected successfully!');
     } catch (e: any) {
       toast.error(`Connection failed: ${e.message}`);
-    }
-  };
-
-  const handlePlaceOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (orderAsset && orderQuantity) {
-      setShowConfirm(true);
     }
   };
 
@@ -81,13 +66,11 @@ export function WalletView() {
     setOrderQuantity('');
     setLimitPrice('');
 
-    // Push Notification (Toast) for Pending Status
     toast.loading(`[${txId}] ${orderType} order for ${orderQuantity} ${orderAsset} submitted...`, {
       id: txId,
-      duration: 30000 // Keep alive until filled
+      duration: 30000
     });
 
-    // Simulate delayed execution to show "push notification" of status change
     setTimeout(() => {
       const mockPrice = (Math.random() * 500 + 50).toFixed(2);
       setExecutions(prev => prev.map(tx =>
@@ -96,12 +79,11 @@ export function WalletView() {
           : tx
       ));
 
-      // Update the loading toast to success
       toast.success(`[${txId}] Order Filled! executed ${orderQuantity} ${orderAsset} @ $${mockPrice}`, {
         id: txId,
-        duration: 5000 // Disappears after 5s
+        duration: 5000
       });
-    }, 3000 + Math.random() * 2000); // Fills after 3-5 seconds
+    }, 3000 + Math.random() * 2000);
   };
 
   return (
@@ -115,30 +97,24 @@ export function WalletView() {
           {!isConnected ? (
              <div className="space-y-8">
               <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                Connect Your Wallet to the Zero-Fee Core
+                Connect Wallet (Relaxed Mode)
               </h2>
               <p className="text-slate-300 max-w-md">
-                Securely connect to unleash the Eliza Syndicate. We route your trades through zero-fee automated dark pools via zero-knowledge proofs. Choose Web3 wallets for DeFi or CEX keys for traditional markets.
+                Securely connect to unleash the Eliza Syndicate. We support all EIP-1193 compatible wallets for DeFi and dark pools.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
                 {/* Web3 Wallets */}
                 <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-6 flex flex-col gap-4">
-                  <h3 className="font-semibold text-slate-200">Web3 / DeFi Wallets</h3>
-                  <p className="text-xs text-slate-400">Connect directly to EVM/Polkadot chains for arbitrage routing by Minimax-m2.7.</p>
+                  <h3 className="font-semibold text-slate-200">Browser / Mobile Wallet</h3>
+                  <p className="text-xs text-slate-400">Connect to MetaMask, Talisman, or any Web3-enabled browser.</p>
 
                   <button
-                    onClick={() => connectWeb3Wallet('MetaMask')}
-                    className="w-full bg-[#F6851B] hover:bg-[#E2761B] text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
+                    onClick={connectWeb3Wallet}
+                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
                   >
-                    Connect MetaMask
-                  </button>
-
-                  <button
-                    onClick={() => connectWeb3Wallet('Talisman')}
-                    className="w-full bg-[#e6007a] hover:bg-[#c20066] text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    Connect Talisman
+                    <Wallet className="w-4 h-4" />
+                    Connect Web3 Wallet
                   </button>
                 </div>
 
@@ -230,7 +206,10 @@ export function WalletView() {
                     </p>
                     <div className="flex gap-3">
                       <button
-                        onClick={executeOrder}
+                        onClick={() => {
+                           setShowConfirm(false);
+                           toast.success("Order simulated (Demo mode)");
+                        }}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                       >
                         Confirm Execute
@@ -244,7 +223,7 @@ export function WalletView() {
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                  <form onSubmit={(e) => { e.preventDefault(); setShowConfirm(true); }} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div>
                       <label className="block text-xs font-medium text-slate-400 mb-1">Asset</label>
                       <input

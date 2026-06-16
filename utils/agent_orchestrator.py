@@ -395,10 +395,12 @@ class AgentOrchestrator:
     # ============================================================
     def _llm_trading_decision(
         self,
+
         token: str,
         market_data: Dict[str, Any],
         gas_data: Dict[str, Any],
         capital: float,
+        agent_role: str = "strategist",
     ) -> Dict[str, Any]:
         """Call LLM via SmartRouter for a genuine trading decision."""
         prompt = self._build_trade_prompt(token, market_data, gas_data, capital)
@@ -411,7 +413,7 @@ class AgentOrchestrator:
             content = self.router.query(
                 prompt=prompt,
                 system_prompt=system_prompt,
-                agent_role="strategist",
+                agent_role=agent_role,
                 json_mode=True,
             )
             

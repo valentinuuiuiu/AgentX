@@ -61,7 +61,7 @@ def _init_providers():
             "priority": 5,  # Bittensor has quota issues, demote to lowest priority
         })
 
-    nvidia_key = os.environ.get("NVIDIA_NIM_KEY", "")
+    nvidia_key = os.environ.get("NVIDIA_NIM_API_KEY", "")
     if nvidia_key:
         providers.append({
             "name": "nvidia",
