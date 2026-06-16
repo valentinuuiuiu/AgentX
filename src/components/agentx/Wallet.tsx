@@ -35,9 +35,6 @@ export function WalletView() {
       let provider = null;
       if (providerName === 'MetaMask' && (window as any).ethereum) {
         provider = (window as any).ethereum;
-        if (!provider.isMetaMask) {
-          console.warn('Provider is not explicitly flagged as MetaMask (isMetaMask is false/undefined), continuing anyway...');
-        }
         await provider.request({ method: 'eth_requestAccounts' });
       } else if (providerName === 'Talisman' && (window as any).talismanEth) {
         provider = (window as any).talismanEth;

@@ -52,7 +52,7 @@ def _load_providers() -> List[AIProvider]:
         ))
 
     # 2. NVIDIA NIM (free credits, 40 RPM)
-    nvidia_key = os.environ.get("NVIDIA_NIM_KEY", "")
+    nvidia_key = os.environ.get("NVIDIA_NIM_API_KEY", "")
     if nvidia_key:
         providers.append(AIProvider(
             name="nvidia",
