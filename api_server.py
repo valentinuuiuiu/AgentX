@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 """
 Rehoboam API Server v3.0 -- Hermes Bridge Integrated
 ==============================================
@@ -12,21 +12,37 @@ import os
 import json
 import logging
 import asyncio
+import httpx
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+try:
+    from utils.ai_router import AIRouter
+except ImportError:
+    AIRouter = None
+
+try:
+    from utils.price_feed_service import PriceFeedService
+    from trading_agent import TradingAgent
+except ImportError:
+    PriceFeedService = None
+    TradingAgent = None
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("RehoboamAPI")
-
 # =====================================================
 # LAZY SERVICES -- server boots even with missing deps
 # =====================================================
 crew = None
+try:
+    from utils.user_management import get_current_user
+except ImportError:
+    def get_current_user(): return 1
 agent_orchestrator = None
 vetal = None
 contract_bridge_ref = None
@@ -102,7 +118,7 @@ async def lifespan(app):
 # APP
 # =====================================================
 app = FastAPI(
-    title="Rehoboam 3.0 -- Hermes-Powered Web3 Agent System",
+    title="Rehoboam 3.0 -- Antigravity Syndicate (Hermes Core)",
     description="Multi-agent AI trading. GLM-5.1 consciousness, MiniMax M2.7 orchestration, Ising reasoning, Three Filters gate, flash loan arbitrage.",
     version="3.0.0",
     lifespan=lifespan,
@@ -171,7 +187,6 @@ async def get_status():
     if flash_scanner:
         stats["flash_scanner"] = "ready"
     try:
-        from utils.ai_router import AIRouter
         stats["ai_providers"] = AIRouter().get_status()
     except Exception as e:
         stats["ai_providers_error"] = str(e)
@@ -362,8 +377,6 @@ async def shield_consensus(request: Dict[str, Any] = Body(...)):
 
 # =====================================================
 # TRADING AGENTS (Multi-Agent LLM Trading)
-# =====================================================
-import httpx
 
 TRADING_AGENTS_URL = os.environ.get("MCP_TRADING_AGENTS_URL", "http://mcp-trading-agents:3700")
 
@@ -439,7 +452,6 @@ async def trading_agents_health():
 def _get_ai_router():
     """Get AIRouter instance, returns None if unavailable."""
     try:
-        from utils.ai_router import AIRouter
         return AIRouter()
     except Exception:
         return None
@@ -2847,8 +2859,6 @@ async def get_orchestrator_status():
 async def get_individual_price(symbol: str):
     """Get real-time price for a specific token using Chainlink feeds and price services."""
     try:
-        from utils.price_feed_service import PriceFeedService
-        from trading_agent import TradingAgent
 
         # Try using the real price feed service first
         try:
@@ -2924,8 +2934,6 @@ async def get_individual_price(symbol: str):
 async def get_batch_prices(symbols: str = "BTC,ETH,LINK"):
     """Get real-time prices for multiple tokens."""
     try:
-        from utils.price_feed_service import PriceFeedService
-        from trading_agent import TradingAgent
 
         symbol_list = [s.strip().upper() for s in symbols.split(",")]
         prices = {}
@@ -3162,7 +3170,6 @@ class ChatRequest(BaseModel):
 @app.post("/api/chat", tags=["Agent Chat"])
 async def agent_chat(request: ChatRequest):
     """Route chat to the correct AI provider based on agent config."""
-    import httpx as _httpx
 
     # Build messages array with system prompt and market context
     system_prompt = request.system or "You are a trading analyst AI."
@@ -3190,7 +3197,7 @@ async def agent_chat(request: ChatRequest):
     if provider == "nvidia":
         base_url = "https://integrate.api.nvidia.com/v1"
         if not api_key:
-            api_key = os.environ.get("NVIDIA_NIM_KEY", "")
+            api_key = os.environ.get("NVIDIA_NIM_API_KEY", "")
     elif provider == "openrouter":
         base_url = "https://openrouter.ai/api/v1"
         if not api_key:
@@ -3228,7 +3235,7 @@ async def agent_chat(request: ChatRequest):
             "max_tokens": 2048,
         }
 
-        async with _httpx.AsyncClient(timeout=120) as client:
+        async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(
                 f"{base_url}/chat/completions",
                 json=payload,
@@ -3253,7 +3260,7 @@ async def agent_chat(request: ChatRequest):
                 "provider": provider,
                 "model": model,
             }
-    except _httpx.TimeoutException:
+    except httpx.TimeoutException:
         return {"error": f"Timeout connecting to {provider}. The model may be overloaded."}
     except Exception as e:
         logger.error(f"Chat API error ({provider}/{model}): {e}")

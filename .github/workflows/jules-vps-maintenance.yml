@@ -24,7 +24,7 @@ jobs:
             echo "--- System Status ---"
             systemctl is-active nginx || systemctl restart nginx
             echo "--- API Health ---"
-            curl -sf http://localhost:5000/health || echo "API DOWN"
+            curl -sf http://localhost:5002/health || echo "API DOWN"
             echo "--- Disk Usage ---"
             df -h / | tail -1
             echo "--- Memory ---"
