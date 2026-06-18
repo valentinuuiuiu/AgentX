@@ -21,7 +21,7 @@ import requests
 from typing import Dict, Any, List, Optional, Union, Callable, Type
 from functools import wraps
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Web3 import with fallback
 try:
@@ -929,7 +929,7 @@ class EnhancedMCPSpecialist(MCPSpecialist):
         for i in range(5):
             tx_hash = Web3.toHex(Web3.keccak(text=f"tx{i}-{address}"))
             block_number = start_block + i
-            timestamp = datetime.utcnow() - timedelta(days=i)
+            timestamp = datetime.now(timezone.utc) - timedelta(days=i)
             transactions.append({
                 "hash": tx_hash,
                 "block_number": block_number,

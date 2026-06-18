@@ -13,11 +13,11 @@ import json
 import logging
 import asyncio
 import httpx
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body, Depends
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -50,11 +50,12 @@ mcp_specialist = None
 hermes_bridge = None
 flash_scanner = None
 active_connections = []
+t2l_auditor = None
 
 
 def _lazy_imports():
     """Load heavy services. Does not crash on missing deps."""
-    global crew, agent_orchestrator, vetal, contract_bridge_ref, mcp_specialist
+    global crew, agent_orchestrator, vetal, contract_bridge_ref, mcp_specialist, t2l_auditor
     try:
         from utils.multi_agent_framework import create_rehoboam_crew
         crew = create_rehoboam_crew()
@@ -81,8 +82,11 @@ def _lazy_imports():
         mcp_specialist = MCPSpecialist()
     except Exception as e:
         logger.warning(f"MCPSpecialist: {e}")
-
-
+    try:
+        from utils.t2l_auditor_engine import T2LAuditorEngine
+        t2l_auditor = T2LAuditorEngine()
+    except Exception as e:
+        logger.warning(f"T2LAuditorEngine: {e}")
 async def _init_hermes():
     """Initialize Hermes Bridge + Flash Scanner."""
     global hermes_bridge, flash_scanner
@@ -3018,6 +3022,13 @@ async def get_batch_prices(symbols: str = "BTC,ETH,LINK"):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class ContractAuditRequest(BaseModel):
+    contract_code: Optional[str] = Field(None, description="Full Solidity code of the contract")
+    contract_address: Optional[str] = Field(None, description="Address of a deployed contract")
+    network_name: Optional[str] = Field(None, description="Network for address-based fetching")
+    audit_task_description: str = Field(..., description="Natural language description of the audit focus")
+
+
 # --- New AI Auditing Endpoint ---
 @app.post("/api/audit/contract", tags=["AI Auditing"], response_model=Dict[str, Any])
 async def audit_contract_endpoint(
@@ -3349,7 +3360,7 @@ async def get_alpha_intel():
             pass
 
     # Fear & Greed Index
-    fear_greed = {"value": "N/A", "classification": "Unknown", "timestamp": datetime.utcnow().isoformat()}
+    fear_greed = {"value": "N/A", "classification": "Unknown", "timestamp": datetime.now(timezone.utc).isoformat()}
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get("https://api.alternative.me/fng/?limit=1")
@@ -3360,7 +3371,7 @@ async def get_alpha_intel():
                     fear_greed = {
                         "value": fg.get("value", "N/A"),
                         "classification": fg.get("value_classification", "Unknown"),
-                        "timestamp": datetime.fromtimestamp(int(fg.get("timestamp", 0))).isoformat() if fg.get("timestamp") else datetime.utcnow().isoformat(),
+                        "timestamp": datetime.fromtimestamp(int(fg.get("timestamp", 0)), tz=timezone.utc).isoformat() if fg.get("timestamp") else datetime.now(timezone.utc).isoformat(),
                     }
     except Exception as e:
         logger.warning(f"Fear & Greed fetch failed: {e}")
@@ -3368,7 +3379,7 @@ async def get_alpha_intel():
     return {
         "news": news_items[:30],
         "fearGreed": fear_greed,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

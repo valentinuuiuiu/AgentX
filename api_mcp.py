@@ -386,9 +386,10 @@ async def generate_mcp_token(user_data: Dict[str, Any] = Body(...)):
 @router.get("/health")
 async def mcp_health_check():
     """Public health check endpoint for MCP services."""
+    from datetime import timezone
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "services": 4,
         "endpoint": os.getenv('MCP_ENDPOINT', 'http://localhost:8000/api/mcp')
     }
