@@ -13,11 +13,11 @@ import json
 import logging
 import asyncio
 import httpx
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body, Depends
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -3016,6 +3016,13 @@ async def get_batch_prices(symbols: str = "BTC,ETH,LINK"):
         logger.error(f"Error in batch price fetch: {str(e)}")
 
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class ContractAuditRequest(BaseModel):
+    contract_code: Optional[str] = Field(None, description="Full Solidity code of the contract")
+    contract_address: Optional[str] = Field(None, description="Address of a deployed contract")
+    network_name: Optional[str] = Field(None, description="Network for address-based fetching")
+    audit_task_description: str = Field(..., description="Natural language description of the audit focus")
 
 
 # --- New AI Auditing Endpoint ---
