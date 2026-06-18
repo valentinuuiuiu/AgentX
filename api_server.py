@@ -50,11 +50,12 @@ mcp_specialist = None
 hermes_bridge = None
 flash_scanner = None
 active_connections = []
+t2l_auditor = None
 
 
 def _lazy_imports():
     """Load heavy services. Does not crash on missing deps."""
-    global crew, agent_orchestrator, vetal, contract_bridge_ref, mcp_specialist
+    global crew, agent_orchestrator, vetal, contract_bridge_ref, mcp_specialist, t2l_auditor
     try:
         from utils.multi_agent_framework import create_rehoboam_crew
         crew = create_rehoboam_crew()
@@ -81,8 +82,11 @@ def _lazy_imports():
         mcp_specialist = MCPSpecialist()
     except Exception as e:
         logger.warning(f"MCPSpecialist: {e}")
-
-
+    try:
+        from utils.t2l_auditor_engine import T2LAuditorEngine
+        t2l_auditor = T2LAuditorEngine()
+    except Exception as e:
+        logger.warning(f"T2LAuditorEngine: {e}")
 async def _init_hermes():
     """Initialize Hermes Bridge + Flash Scanner."""
     global hermes_bridge, flash_scanner
