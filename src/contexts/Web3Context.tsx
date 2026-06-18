@@ -74,6 +74,7 @@ export function Web3ContextProvider({ children }: { children: React.ReactNode })
       setBalance(balanceEth);
     } catch (error) {
       console.error('Error fetching balance:', error);
+      setBalance('0');
     }
   };
 
