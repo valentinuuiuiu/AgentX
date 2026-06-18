@@ -2,13 +2,30 @@ import { Server, Socket } from 'socket.io';
 import { createServer } from 'http';
 import express, { Application } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 interface SocketData {
   channels: string[];
 }
 
 const app: Application = express();
+app.set('trust proxy', 1);
 app.use(cors());
+
+// Configure security headers
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
+
+// Configure API rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+app.use('/api/', apiLimiter);
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
