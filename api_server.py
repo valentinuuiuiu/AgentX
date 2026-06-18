@@ -3360,7 +3360,7 @@ async def get_alpha_intel():
             pass
 
     # Fear & Greed Index
-    fear_greed = {"value": "N/A", "classification": "Unknown", "timestamp": datetime.utcnow().isoformat()}
+    fear_greed = {"value": "N/A", "classification": "Unknown", "timestamp": datetime.now(timezone.utc).isoformat()}
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get("https://api.alternative.me/fng/?limit=1")
@@ -3371,7 +3371,7 @@ async def get_alpha_intel():
                     fear_greed = {
                         "value": fg.get("value", "N/A"),
                         "classification": fg.get("value_classification", "Unknown"),
-                        "timestamp": datetime.fromtimestamp(int(fg.get("timestamp", 0))).isoformat() if fg.get("timestamp") else datetime.utcnow().isoformat(),
+                        "timestamp": datetime.fromtimestamp(int(fg.get("timestamp", 0)), tz=timezone.utc).isoformat() if fg.get("timestamp") else datetime.now(timezone.utc).isoformat(),
                     }
     except Exception as e:
         logger.warning(f"Fear & Greed fetch failed: {e}")
@@ -3379,7 +3379,7 @@ async def get_alpha_intel():
     return {
         "news": news_items[:30],
         "fearGreed": fear_greed,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

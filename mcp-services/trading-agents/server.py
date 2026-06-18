@@ -13,7 +13,7 @@ import sys
 import json
 import logging
 import httpx
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -271,7 +271,7 @@ async def health():
     ]
     return HealthResponse(
         status="healthy",
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
         tradingagents_available=ta_available,
         providers=safe_providers,
         ollama_models=get_ollama_models(),
@@ -281,7 +281,7 @@ async def health():
 @app.post("/analyze", response_model=AnalysisResponse)
 async def analyze(request: AnalysisRequest):
     """Run full multi-agent trading analysis."""
-    date_str = request.date or datetime.utcnow().strftime("%Y-%m-%d")
+    date_str = request.date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     # Try TradingAgents framework first
     try:
@@ -448,7 +448,7 @@ async def get_quote(ticker: str, source: str = "auto"):
                     "change": ticker_data.get("todaysChange", 0),
                     "change_percent": f"{ticker_data.get('todaysChangePerc', 0):.2f}%",
                     "volume": ticker_data.get("day", {}).get("v", 0),
-                    "latest_trading_day": datetime.utcnow().strftime("%Y-%m-%d"),
+                    "latest_trading_day": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
                 }
     except Exception as e:
         logger.error(f"Data fetch failed: {e}")

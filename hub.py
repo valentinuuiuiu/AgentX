@@ -3,7 +3,7 @@ import json
 import logging
 import websockets
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Configure logging
 logging.basicConfig(
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class AntigravityHub:
     def __init__(self, host=None, port=None):
-        self.host = host or os.getenv('HUB_HOST', '127.0.0.1')
+        self.host = host or os.getenv('HUB_HOST', '0.0.0.0')
         self.port = int(port or os.getenv('HUB_PORT', 4444))
         self.clients = set()
 
@@ -31,7 +31,7 @@ class AntigravityHub:
                     # Echo response
                     response = {
                         "status": "received",
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                         "echo": data
                     }
                     await websocket.send(json.dumps(response))
