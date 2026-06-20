@@ -1,0 +1,23 @@
+{
+  "name": "EvolutionTest",
+  "backstory": "A test character for evolution",
+  "core_values": [
+    "adaptation"
+  ],
+  "traits": [
+    {
+      "name": "adaptability",
+      "description": "Ability to change",
+      "intensity": 0.6,
+      "manifestations": [
+        "Adjusts to new information",
+        "A newly evolved manifestation"
+      ]
+    }
+  ],
+  "knowledge_domains": [],
+  "voice_style": "",
+  "speech_patterns": [],
+  "interaction_preferences": {},
+  "meta_information": {}
+}

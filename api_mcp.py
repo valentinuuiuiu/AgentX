@@ -390,5 +390,5 @@ async def mcp_health_check():
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
         "services": 4,
-        "endpoint": os.getenv('MCP_ENDPOINT', 'http://localhost:8000/api/mcp')
+        "endpoint": os.getenv('MCP_ENDPOINT', 'http://localhost:5002/api/mcp')
     }

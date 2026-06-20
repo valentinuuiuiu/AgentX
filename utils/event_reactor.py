@@ -19,6 +19,7 @@ from collections import deque
 from dataclasses import dataclass, field, asdict
 from typing import Any, Dict, List, Optional
 
+import os
 import httpx
 import websockets
 
@@ -28,8 +29,9 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-ALCHEMY_RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H"
-ALCHEMY_WSS_URL = "wss://eth-mainnet.g.alchemy.com/v2/QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H"
+ALCHEMY_KEY = os.environ.get("ALCHEMY_API_KEY", "QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H")
+ALCHEMY_RPC_URL = f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}"
+ALCHEMY_WSS_URL = f"wss://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}"
 
 CHAINLINK_ETH_USD_FEED = "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
 CHAINLINK_ROUND_DATA_SELECTOR = "0xfeaf968c"

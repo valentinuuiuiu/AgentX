@@ -1,10 +1,10 @@
-import requests, json
+import requests, json, os
 
 invoke_url = "https://integrate.api.nvidia.com/v1/chat/completions"
 stream = True
 
 headers = {
-  "Authorization": "Bearer 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",
+  "Authorization": f"Bearer {os.environ.get('NVIDIA_NIM_API_KEY')}",
   "Accept": "text/event-stream" if stream else "application/json"
 }
 

@@ -169,7 +169,7 @@ export async function switchToSepolia() {
           chainId: '0xaa36a7',
           chainName: 'Sepolia Testnet',
           nativeCurrency: { name: 'SepoliaETH', symbol: 'ETH', decimals: 18 },
-          rpcUrls: ['https://eth-sepolia.g.alchemy.com/v2/QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H'],
+          rpcUrls: [`https://eth-sepolia.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY || 'your-key-here'}`],
           blockExplorerUrls: ['https://sepolia.etherscan.io'],
         }],
       });

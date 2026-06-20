@@ -15,7 +15,7 @@ import json
 class RealTransactionMaker:
     def __init__(self):
         self.your_wallet = "0x9b9C9e713d8EFf874fACA1f1CCf0cfee7d631Ae8"
-        self.alchemy_key = "QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H"
+        self.alchemy_key = os.environ.get("ALCHEMY_API_KEY")
         
         # Connect to Ethereum mainnet
         self.w3 = Web3(Web3.HTTPProvider(f'https://eth-mainnet.g.alchemy.com/v2/{self.alchemy_key}'))
