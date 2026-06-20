@@ -38,9 +38,11 @@ class TradingAPIService {
   }
 
   private initializeInfuraProvider() {
-    const infuraKey = import.meta.env.VITE_INFURA_API_KEY || 'ddd78bc17de648b2a89acf424fbfa8ed';
+    const infuraKey = import.meta.env.VITE_INFURA_API_KEY;
     if (infuraKey) {
       this.infuraProvider = new JsonRpcProvider(`https://mainnet.infura.io/v3/${infuraKey}`);
+    } else {
+      console.warn('VITE_INFURA_API_KEY is not set. Infura provider will not be initialized.');
     }
   }
 

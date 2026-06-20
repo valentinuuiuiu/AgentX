@@ -571,8 +571,13 @@ export class VetalShabarRaksha extends SimpleEventEmitter {
         else {
           const Web3 = await import('web3');
           // Use infura or other provider from environment or config
-          const INFURA_API_KEY = process.env.INFURA_API_KEY || 'your_infura_api_key';
-          this.web3 = new Web3.default(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`);
+          const INFURA_API_KEY = process.env.INFURA_API_KEY || process.env.VITE_INFURA_API_KEY;
+          if (!INFURA_API_KEY) {
+            console.warn("INFURA_API_KEY is not set. Web3 fallback initialization may fail or use a public node.");
+            this.web3 = new Web3.default('https://cloudflare-eth.com'); // generic public fallback
+          } else {
+            this.web3 = new Web3.default(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`);
+          }
         }
       } catch (error) {
         console.error("Failed to initialize Web3:", error);

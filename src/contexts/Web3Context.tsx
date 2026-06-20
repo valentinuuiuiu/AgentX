@@ -47,10 +47,12 @@ export function Web3ContextProvider({ children }: { children: React.ReactNode })
 
   // Initialize Infura provider on component mount
   useEffect(() => {
-    const infuraKey = import.meta.env.VITE_INFURA_API_KEY || 'ddd78bc17de648b2a89acf424fbfa8ed';
+    const infuraKey = import.meta.env.VITE_INFURA_API_KEY;
     if (infuraKey) {
       const infuraRpcProvider = new JsonRpcProvider(`https://mainnet.infura.io/v3/${infuraKey}`);
       setInfuraProvider(infuraRpcProvider);
+    } else {
+      console.warn('VITE_INFURA_API_KEY is not set. Infura provider will not be initialized.');
     }
   }, []);
 
