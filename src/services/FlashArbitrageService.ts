@@ -285,19 +285,8 @@ export class FlashArbitrageService {
       return null;
     }
 
-    let amountEther = "0";
-    try {
-      if (maxAmount !== null && maxAmount !== undefined) {
-        amountEther = ethers.formatEther(maxAmount);
-      }
-    } catch (e) {
-      console.error("Error formatting maxAmount:", e);
-    }
-
-    let parsedAmount = parseFloat(amountEther);
-    if (isNaN(parsedAmount)) parsedAmount = 0;
-
-    const expectedProfitUSD = priceDifference * parsedAmount;
+    const amountEther = ethers.formatEther(maxAmount);
+    const expectedProfitUSD = priceDifference * parseFloat(amountEther);
     
     // Estimate flash loan fee (typically 0.05% for Aave)
     const flashLoanFeePercentage = 0.05;

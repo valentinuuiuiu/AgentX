@@ -104,18 +104,7 @@ export const NoGasArbitrage: React.FC = () => {
       const detailedOps: ArbitrageOpportunity[] = await Promise.all(
         profitableOps.map(async (op, index) => {
           // Convert amount from string (wei) to number for calculations
-          let amountInEth = 0;
-          try {
-            if (op.amount !== null && op.amount !== undefined) {
-              const formatted = ethers.formatEther(op.amount);
-              const parsed = parseFloat(formatted);
-              if (!isNaN(parsed)) {
-                amountInEth = parsed;
-              }
-            }
-          } catch (e) {
-            console.error("Error formatting op.amount:", e);
-          }
+          const amountInEth = parseFloat(ethers.formatEther(op.amount));
           
           // Check if this opportunity can be executed with no gas money
           const canExecute = op.netProfit > 0.001; // Must profit at least $1-2 to be worth it
