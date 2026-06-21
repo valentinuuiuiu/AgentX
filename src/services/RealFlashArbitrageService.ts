@@ -200,8 +200,12 @@ export class RealFlashArbitrageService {
       const gasPrice = await this.provider.getFeeData();
       const gasLimit = 300000; // Typical for flash loan arbitrage
       const gasCost = gasPrice.gasPrice ? gasPrice.gasPrice * BigInt(gasLimit) : BigInt(0);
+      if (gasCost === null || gasCost === undefined) {
+        return '0.008';
+      }
       return ethers.formatEther(gasCost);
     } catch (error) {
+      console.error('Error formatting gas cost:', error);
       return '0.008'; // Fallback estimate
     }
   }
