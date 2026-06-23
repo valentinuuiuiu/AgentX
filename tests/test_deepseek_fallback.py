@@ -7,8 +7,7 @@ import os
 import json
 from unittest.mock import patch, MagicMock
 from utils.rehoboam_ai import RehoboamAI
-from utils.market_sentiment_mcp import MarketSentimentMCP
-from orbit import MCPClient
+from utils.market_sentiment_mcp import MarketSentimentMCP, MCPClient
 
 
 class TestRehoboamAI:

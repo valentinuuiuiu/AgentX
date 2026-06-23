@@ -4,6 +4,7 @@ Rehoboam System Integration Verifier
 Tests all MCP servers, Web3 connections, and service integrations
 """
 
+import os
 import requests
 import json
 import time
@@ -13,6 +14,7 @@ from datetime import datetime
 class RehoboamVerifier:
     def __init__(self):
         self.base_url = "http://localhost:5002"
+        alchemy_key = os.environ.get("ALCHEMY_API_KEY", "QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H")
         self.mcp_services = {
             "registry": {"port": 3001, "url": "http://localhost:3001", "name": "MCP Registry"},
             "consciousness": {"port": 3600, "url": "http://localhost:3600", "name": "Consciousness Layer"},
@@ -22,10 +24,10 @@ class RehoboamVerifier:
             "trading-agents": {"port": 3700, "url": "http://localhost:3700", "name": "Trading Agents"}
         }
         self.web3_chains = {
-            "ethereum": {"rpc": "https://eth-mainnet.g.alchemy.com/v2/QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H", "name": "Ethereum"},
-            "polygon": {"rpc": "https://polygon-mainnet.g.alchemy.com/v2/QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H", "name": "Polygon"},
-            "arbitrum": {"rpc": "https://arb-mainnet.g.alchemy.com/v2/QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H", "name": "Arbitrum"},
-            "optimism": {"rpc": "https://opt-mainnet.g.alchemy.com/v2/QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H", "name": "Optimism"}
+            "ethereum": {"rpc": f"https://eth-mainnet.g.alchemy.com/v2/{alchemy_key}", "name": "Ethereum"},
+            "polygon": {"rpc": f"https://polygon-mainnet.g.alchemy.com/v2/{alchemy_key}", "name": "Polygon"},
+            "arbitrum": {"rpc": f"https://arb-mainnet.g.alchemy.com/v2/{alchemy_key}", "name": "Arbitrum"},
+            "optimism": {"rpc": f"https://opt-mainnet.g.alchemy.com/v2/{alchemy_key}", "name": "Optimism"}
         }
         
     def test_mcp_service(self, service_name, service_info):

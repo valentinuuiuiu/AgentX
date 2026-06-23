@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from jules_real_data_provider import jules_assistant
-from conscious_trading_agent import ConsciousTradingAgent
+from conscious_trading_agent_jules import ConsciousTradingAgent
 
 @pytest.mark.asyncio
 async def test_jules_reality_check():

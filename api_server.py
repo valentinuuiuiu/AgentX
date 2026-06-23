@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Dict, Any, Optional, List, Union
 """
 Rehoboam API Server v3.0 -- Hermes Bridge Integrated
 ==============================================
@@ -13,11 +14,11 @@ import json
 import logging
 import asyncio
 import httpx
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body, Depends
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, Body, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -36,6 +37,16 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("RehoboamAPI")
 # =====================================================
+# MODELS
+# =====================================================
+class ContractAuditRequest(BaseModel):
+    contract_code: Optional[str] = None
+    contract_address: Optional[str] = None
+    network_name: Optional[str] = None
+    audit_task_description: str
+
+
+# =====================================================
 # LAZY SERVICES -- server boots even with missing deps
 # =====================================================
 crew = None
@@ -49,12 +60,13 @@ contract_bridge_ref = None
 mcp_specialist = None
 hermes_bridge = None
 flash_scanner = None
+t2l_auditor = None
 active_connections = []
 
 
 def _lazy_imports():
     """Load heavy services. Does not crash on missing deps."""
-    global crew, agent_orchestrator, vetal, contract_bridge_ref, mcp_specialist
+    global crew, agent_orchestrator, vetal, contract_bridge_ref, mcp_specialist, t2l_auditor
     try:
         from utils.multi_agent_framework import create_rehoboam_crew
         crew = create_rehoboam_crew()
@@ -81,6 +93,11 @@ def _lazy_imports():
         mcp_specialist = MCPSpecialist()
     except Exception as e:
         logger.warning(f"MCPSpecialist: {e}")
+    try:
+        from utils.t2l_auditor_engine import T2LAuditorEngine
+        t2l_auditor = T2LAuditorEngine()
+    except Exception as e:
+        logger.warning(f"T2LAuditorEngine: {e}")
 
 
 async def _init_hermes():

@@ -56,7 +56,7 @@ MCP_SERVICES = {
     "trading_agents": os.environ.get("MCP_TRADING_AGENTS_URL", "http://127.0.0.1:3700"),
 }
 
-REHOBOAM_API = os.environ.get("REHOBOAM_API_URL", "http://127.0.0.1:8000")
+REHOBOAM_API = os.environ.get("REHOBOAM_API_URL", "http://127.0.0.1:5002")
 
 
 def _load_openrouter_key() -> str:
@@ -469,7 +469,9 @@ class HermesBridge:
         Get REAL on-chain price from Chainlink oracles via Alchemy.
         No mocks. No APIs. Raw blockchain reads.
         """
-        ALCHEMY_KEY = os.environ.get("ALCHEMY_API_KEY", "QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H")
+        ALCHEMY_KEY = os.environ.get("ALCHEMY_API_KEY")
+        if not ALCHEMY_KEY:
+            return {"error": "ALCHEMY_API_KEY not configured in environment"}
         ALCHEMY_URL = f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}"
 
         # Chainlink feed addresses (Ethereum mainnet)

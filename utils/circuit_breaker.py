@@ -31,9 +31,10 @@ logger = logging.getLogger("CircuitBreaker")
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
+ALCHEMY_KEY = os.environ.get("ALCHEMY_API_KEY", "QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H")
 ALCHEMY_RPC_URL = (
     "https://eth-mainnet.g.alchemy.com/v2/"
-    "QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H"
+    f"{ALCHEMY_KEY}"
 )
 
 CHAINLINK_FEEDS: Dict[str, str] = {
