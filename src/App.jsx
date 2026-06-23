@@ -176,7 +176,12 @@ function App() {
     let total = 0;
     for (const b of tokenBalances) {
       const p = priceData.get(b.symbol === 'WETH' ? 'ETH' : b.symbol);
-      if (p) total += parseFloat(b.balance) * p.price;
+      if (p) {
+        const bal = parseFloat(b.balance);
+        if (!isNaN(bal)) {
+          total += bal * p.price;
+        }
+      }
     }
     return total;
   }, [tokenBalances, priceData]);
@@ -382,10 +387,10 @@ function App() {
                               <span className="text-[10px] text-slate-500 font-mono">{b.address.slice(0, 6)}...{b.address.slice(-4)}</span>
                             </div>
                             <div className="text-right">
-                              <span className="text-xs font-mono">{parseFloat(b.balance).toFixed(b.decimals > 6 ? 4 : 2)}</span>
+                              <span className="text-xs font-mono">{!isNaN(parseFloat(b.balance)) ? parseFloat(b.balance).toFixed(b.decimals > 6 ? 4 : 2) : "0.00"}</span>
                               {(() => {
                                 const p = priceData.get(b.symbol === 'WETH' ? 'ETH' : b.symbol);
-                                return p ? <span className="text-[10px] text-slate-500 ml-2">{formatCurrency(parseFloat(b.balance) * p.price)}</span> : null;
+                                return p && !isNaN(parseFloat(b.balance)) ? <span className="text-[10px] text-slate-500 ml-2">{formatCurrency(parseFloat(b.balance) * p.price)}</span> : null;
                               })()}
                             </div>
                           </div>
@@ -491,11 +496,11 @@ function App() {
                         <div className="space-y-2">
                           {tokenBalances.map(b => {
                             const p = priceData.get(b.symbol === 'WETH' ? 'ETH' : b.symbol);
-                            const val = p ? parseFloat(b.balance) * p.price : null;
+                            const val = p && !isNaN(parseFloat(b.balance)) ? parseFloat(b.balance) * p.price : null;
                             return (
                               <div key={b.symbol} className="flex items-center justify-between py-2.5 border-b border-[#1a1a2e] last:border-0">
                                 <div><span className="font-medium">{b.symbol}</span><span className="text-[10px] text-slate-600 font-mono ml-2">{b.address.slice(0, 6)}...{b.address.slice(-4)}</span></div>
-                                <div className="text-right"><p className="font-mono text-sm">{parseFloat(b.balance).toFixed(b.decimals > 6 ? 4 : 2)}</p>{val != null && <p className="text-[10px] text-slate-500">{formatCurrency(val)}</p>}</div>
+                                <div className="text-right"><p className="font-mono text-sm">{!isNaN(parseFloat(b.balance)) ? parseFloat(b.balance).toFixed(b.decimals > 6 ? 4 : 2) : "0.00"}</p>{val != null && <p className="text-[10px] text-slate-500">{formatCurrency(val)}</p>}</div>
                               </div>
                             );
                           })}
