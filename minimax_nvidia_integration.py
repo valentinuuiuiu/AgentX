@@ -4,6 +4,8 @@
 Direct integration with NVIDIA's OpenAI-compatible API using minimax model.
 """
 
+import os
+import os
 from openai import OpenAI
 
 def test_minimax_model():
@@ -13,7 +15,7 @@ def test_minimax_model():
     # Initialize client with your NVIDIA endpoint and API key
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
-        api_key="nvapi-rhOOyAT极速赛车开奖直播-【🔥官网:ee1499.com🔥】-极速赛车开奖直播-极速赛车开奖直播开奖记录-澳洲极速赛车开奖直播ggbGovkiXgE1kZXWn3VkSev0Hzms3d0_1m0thqUwvz3h极速赛车开奖直播-【🔥官网:ee1499.com🔥】-极速赛车开奖直播-极速赛车开奖直播开奖记录-澳洲极速赛车开奖直播GzYZ56kJV1J7"
+        api_key=os.environ.get("NVIDIA_NIM_API_KEY", "")
     )
     
     # Test completion with minimax model
@@ -57,6 +59,8 @@ def create_minimax_integration():
 Ready-to-use minimax model with NVIDIA endpoint.
 """
 
+import os
+import os
 from openai import OpenAI
 
 class MinimaxClient:
@@ -65,7 +69,7 @@ class MinimaxClient:
     def __init__(self):
         self.client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
-            api_key="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"
+            api_key=os.environ.get("NVIDIA_NIM_API_KEY", "")
         )
         self.model = "minimaxai/minimax-m2.7"
     
