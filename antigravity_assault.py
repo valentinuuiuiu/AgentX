@@ -156,7 +156,7 @@ class AntigravityCommand:
             count=30,
             target="Security Audit",
             specialty="Secret scanning, RBAC, Encryption",
-            antigravity_weakness="Hardcoded NVIDIA API key: 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"
+            antigravity_weakness="Hardcoded NVIDIA API key found"
         )
         
         # DELTA SQUAD: Testing Titans

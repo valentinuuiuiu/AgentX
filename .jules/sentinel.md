@@ -1,0 +1,4 @@
+## 2026-06-23 - Hardcoded NVIDIA API Keys in Testing Utilities
+**Vulnerability:** Found multiple hardcoded `NVIDIA_NIM_API_KEY`s explicitly checked into integration and test utilities (`nvidia_openai_integration.py`, `minimax_nvidia_integration.py`, `kimi_test.py`, `minimax_test.py`, etc). Some values appeared mangled indicating possible attempts to mask or accidental spam injections.
+**Learning:** Development utilities for AI integrations often bypass standard configuration paths causing high-risk secrets to leak. These hardcoded keys are highly sensitive since they enable broad usage of language models.
+**Prevention:** Always ensure testing tools load secrets from the environment (`os.environ.get("NVIDIA_NIM_API_KEY")`) rather than hardcoding. Integrate pre-commit hooks to specifically search for `nvapi-` to catch NVIDIA-specific API keys before they get checked into version control.

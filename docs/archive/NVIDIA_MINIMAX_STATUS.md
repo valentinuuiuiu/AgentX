@@ -30,11 +30,12 @@ If you can't access the minimax models immediately, you can:
 ## Working Test Code (Once Models Are Provisioned)
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
-    api_key="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"
+    api_key=os.environ.get("NVIDIA_NIM_API_KEY", "")
 )
 
 completion = client.chat.completions.create(
