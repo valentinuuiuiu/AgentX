@@ -104,7 +104,13 @@ export const NoGasArbitrage: React.FC = () => {
       const detailedOps: ArbitrageOpportunity[] = await Promise.all(
         profitableOps.map(async (op, index) => {
           // Convert amount from string (wei) to number for calculations
-          const amountInEth = parseFloat(ethers.formatEther(op.amount));
+          let amountInEth = 0;
+          try {
+            amountInEth = parseFloat(ethers.formatEther(op.amount || "0"));
+          } catch (e) {
+            console.error("Error formatting amount:", e);
+          }
+          if (isNaN(amountInEth)) amountInEth = 0;
           
           // Check if this opportunity can be executed with no gas money
           const canExecute = op.netProfit > 0.001; // Must profit at least $1-2 to be worth it
@@ -181,7 +187,7 @@ export const NoGasArbitrage: React.FC = () => {
         gasEstimate: "0.001",
         flashLoanFee: 0.0005,
         netProfit: opportunity.netProfit,
-        profitPercentage: (opportunity.netProfit / parseFloat(opportunity.amount)) * 100
+        profitPercentage: !isNaN(parseFloat(opportunity.amount)) && parseFloat(opportunity.amount) > 0 ? (opportunity.netProfit / parseFloat(opportunity.amount)) * 100 : 0
       };
 
       // Execute the arbitrage using the service
@@ -302,7 +308,7 @@ export const NoGasArbitrage: React.FC = () => {
 
               <div className="space-y-2 text-sm text-gray-300 mb-4">
                 <p><strong>Chain:</strong> {opportunity.chainName}</p>
-                <p><strong>Amount:</strong> {parseFloat(opportunity.amount).toFixed(4)} ETH</p>
+                <p><strong>Amount:</strong> {!isNaN(parseFloat(opportunity.amount)) ? parseFloat(opportunity.amount).toFixed(4) : "0.0000"} ETH</p>
                 <p><strong>Buy from:</strong> {opportunity.buyDEX}</p>
                 <p><strong>Sell to:</strong> {opportunity.sellDEX}</p>
                 <p><strong>Buy Price:</strong> ${opportunity.buyPrice.toFixed(6)}</p>
