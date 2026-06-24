@@ -1,13 +1,31 @@
 import { Server, Socket } from 'socket.io';
 import { createServer } from 'http';
-import express, { Application } from 'express';
+import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
+type Application = express.Application;
 
 interface SocketData {
   channels: string[];
 }
 
 const app: Application = express();
+
+app.set('trust proxy', 1);
+
+app.use(helmet({ contentSecurityPolicy: false }));
+
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 1000, // 1000 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
+
 app.use(cors());
 
 const httpServer = createServer(app);
