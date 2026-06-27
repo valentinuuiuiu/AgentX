@@ -156,6 +156,10 @@ export async function fetchAPIPrice(token) {
 export async function switchToSepolia() {
   if (!window.ethereum) throw new Error('No wallet detected');
 
+  if (!import.meta.env.VITE_ALCHEMY_API_KEY) {
+    throw new Error('VITE_ALCHEMY_API_KEY is not defined in environment variables');
+  }
+
   try {
     await window.ethereum.request({
       method: 'wallet_switchEthereumChain',
@@ -169,7 +173,7 @@ export async function switchToSepolia() {
           chainId: '0xaa36a7',
           chainName: 'Sepolia Testnet',
           nativeCurrency: { name: 'SepoliaETH', symbol: 'ETH', decimals: 18 },
-          rpcUrls: [`https://eth-sepolia.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY || 'your-key-here'}`],
+          rpcUrls: [`https://eth-sepolia.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_API_KEY}`],
           blockExplorerUrls: ['https://sepolia.etherscan.io'],
         }],
       });

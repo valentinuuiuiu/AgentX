@@ -571,7 +571,10 @@ export class VetalShabarRaksha extends SimpleEventEmitter {
         else {
           const Web3 = await import('web3');
           // Use infura or other provider from environment or config
-          const INFURA_API_KEY = process.env.INFURA_API_KEY || 'your_infura_api_key';
+          const INFURA_API_KEY = process.env.INFURA_API_KEY;
+          if (!INFURA_API_KEY) {
+            throw new Error('INFURA_API_KEY is not defined in environment variables');
+          }
           this.web3 = new Web3.default(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`);
         }
       } catch (error) {
