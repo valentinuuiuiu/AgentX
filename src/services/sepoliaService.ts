@@ -79,13 +79,17 @@ export async function fetchSepoliaBalances(provider, walletAddress) {
   // Add ETH balance
   try {
     const ethBalance = await provider.getBalance(walletAddress);
-    balances.unshift({
-      symbol: 'ETH',
-      address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-      balance: ethers.formatEther(ethBalance),
-      decimals: 18,
-    });
-  } catch (e) {}
+    if (ethBalance !== null && ethBalance !== undefined) {
+      balances.unshift({
+        symbol: 'ETH',
+        address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        balance: ethers.formatEther(ethBalance),
+        decimals: 18,
+      });
+    }
+  } catch (e) {
+    console.error('Error fetching ETH balance:', e);
+  }
 
   return balances;
 }
