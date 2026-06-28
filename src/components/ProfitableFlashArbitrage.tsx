@@ -115,7 +115,7 @@ const ProfitableFlashArbitrage: React.FC = () => {
           const provider = new ethers.BrowserProvider(window.ethereum);
           try {
             const balanceWei = await provider.getBalance(accounts[0]);
-            if (balanceWei != null) {
+            if (balanceWei !== null && balanceWei !== undefined) {
               setBalance(ethers.formatEther(balanceWei));
             } else {
               setBalance("0.00");
