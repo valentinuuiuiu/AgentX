@@ -13,15 +13,19 @@ def configure_nvidia_endpoint():
     print("🔧 Configuring BabyAGI for NVIDIA endpoint...")
     
     # Create configuration directory
-    config_dir = Path("/home/aryan/free-claude/bittensor/clean_rehoboam_project/babyagi_config")
-    config_dir.mkdir(exist_ok=True)
+    config_dir = Path("./babyagi_config")
+    config_dir.mkdir(exist_ok=True, parents=True)
     
     # NVIDIA endpoint configuration
+    nvidia_api_key = os.environ.get("NVIDIA_API_KEY")
+    if not nvidia_api_key:
+        print("⚠️ WARNING: NVIDIA_API_KEY environment variable is not set. API calls will fail.")
+
     nvidia_config = {
         "api_base": "https://integrate.api.nvidia.com/v1",
         "api_type": "nvidia",
         "model": "nvidia/llama-3-70b-instruct",
-        "api_key": os.environ.get("NVIDIA_API_KEY", "your_nvidia_api_key_here"),
+        "api_key": nvidia_api_key or "",
         "max_tokens": 4000,
         "temperature": 0.7,
         "timeout": 30
@@ -75,8 +79,8 @@ def create_nvidia_compatible_functions():
     }
     
     # Create functions directory
-    funcs_dir = Path("/home/aryan/free-claude/bittensor/clean_rehoboam_project/nvidia_functions")
-    funcs_dir.mkdir(exist_ok=True)
+    funcs_dir = Path("./nvidia_functions")
+    funcs_dir.mkdir(exist_ok=True, parents=True)
     
     for func_name, description in functions.items():
         func_code = f'''
@@ -174,7 +178,7 @@ except Exception as e:
 '''
     
     # Save integration module
-    integration_file = Path("/home/aryan/free-claude/bittensor/clean_rehoboam_project/nvidia_integration.py")
+    integration_file = Path("./nvidia_integration.py")
     integration_file.write_text(integration_code)
     
     print(f"✅ NVIDIA integration module: {integration_file}")
