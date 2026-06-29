@@ -109,7 +109,7 @@ __all__ = ['nvidia_completion', 'configure_nvidia_for_babyagi']
 '''
     
     # Save integration module
-    with open("/home/aryan/free-claude/bittensor/clean_rehoboam_project/nvidia_babyagi_integration.py", "w") as f:
+    with open("./nvidia_babyagi_integration.py", "w") as f:
         f.write(integration_code)
     
     print("✅ NVIDIA-BabyAGI integration module created!")
