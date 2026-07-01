@@ -53,7 +53,11 @@ crew = None
 try:
     from utils.user_management import get_current_user
 except ImportError:
-    def get_current_user(): return 1
+    def get_current_user():
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="User management module not available"
+        )
 agent_orchestrator = None
 vetal = None
 contract_bridge_ref = None
