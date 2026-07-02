@@ -141,7 +141,26 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+# Allowed origins for CORS
+default_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5002",
+    "http://localhost:4444",
+    "http://localhost:5173", # Vite default
+    "https://piata-ai.ro",
+    "https://auto-roan.vercel.app"
+]
+cors_origins_env = os.environ.get("CORS_ORIGINS")
+allowed_origins = [origin.strip() for origin in cors_origins_env.split(",")] if cors_origins_env else default_origins
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 
 # =====================================================
