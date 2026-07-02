@@ -14,7 +14,7 @@ from datetime import datetime
 class RehoboamVerifier:
     def __init__(self):
         self.base_url = "http://localhost:5002"
-        alchemy_key = os.environ.get("ALCHEMY_API_KEY", "QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H")
+        alchemy_key = os.environ.get("ALCHEMY_API_KEY", "")
         self.mcp_services = {
             "registry": {"port": 3001, "url": "http://localhost:3001", "name": "MCP Registry"},
             "consciousness": {"port": 3600, "url": "http://localhost:3600", "name": "Consciousness Layer"},

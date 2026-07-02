@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-ALCHEMY_KEY = os.environ.get("ALCHEMY_API_KEY", "QfkjpUEE-OGny-o7VA7Hvo2VJ7J4ui9H")
+ALCHEMY_KEY = os.environ.get("ALCHEMY_API_KEY", "")
 ALCHEMY_RPC_URL = f"https://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}"
 ALCHEMY_WSS_URL = f"wss://eth-mainnet.g.alchemy.com/v2/{ALCHEMY_KEY}"
 
